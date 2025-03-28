@@ -1,0 +1,1 @@
+/usr/bin/g++-13 -DQT_QML_DEBUG -g CMakeFiles/Portefoelje.dir/main.cpp.o CMakeFiles/Portefoelje.dir/character.cpp.o -o Portefoelje 
