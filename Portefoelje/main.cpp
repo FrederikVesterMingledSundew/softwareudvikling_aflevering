@@ -6,6 +6,7 @@
 #include <thread>
 #include <string>
 #include <random>
+#include <vector>
 
 #include "character.h"
 #include "SQLdatabase.h"
@@ -13,7 +14,7 @@
 
 // Game settings
 #define WIDTH 40
-#define HEIGHT 20
+#define HEIGHT 19
 #define PADDLE_SIZE 3
 #define FRAME_RATE 2
 #define MAX_NAME_LENGTH 10
@@ -28,21 +29,24 @@
 #define KEY_ESC 27 // ESC KEY
 #define KEY_BACKSPACE 127 //BACKSPACE KEY
 
-
 enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, MONSTER, MONSTER_STATUS, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
-static bool enterPressed;
-static int menuPos = 3; //standard
+//Variabler
+bool enterPressed;
+int menuPos = 3; //standard
 static int menuOptions = 4; //Max
 static int playerPos = WIDTH/2;
 static std::string tmpName = {};
 static std::string windowArr[HEIGHT] = {};
 std::default_random_engine generator;
-
+std::vector<character> loadingPlayers {};
 
 keyboard keyboardCTRL;
 static bool killKeyboardThread = false;
+
+//SQL
+sqlDB DB("saves.db");
 
 //Settings
 #define DIVIDER 1000
@@ -72,6 +76,7 @@ std::string generateLine(character &player) {
 
 void drawGame(character &player, int &pos) {
     std::cout << "[ XP: " << std::setw(6) << std::right << player.getXP() << " Lvl: " << std::setw(2) << player.getLvl() << std::right << " NAME: " << std::setw(13) << std::right  << player.getName() << " ]" << std::endl;
+    std::cout << "[ pID: " << std::setw(34) << player.getId() << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
 
     for(int y = 0; y <= HEIGHT; y++) {
@@ -161,7 +166,9 @@ void drawMenu() {
         enterPressed = false;
         switch(menuPos) {
         case 3:
-            stateOfGame = GAME;
+            DB.searchForHeroes(loadingPlayers);
+            stateOfGame = LOAD_PLAYER;
+            menuPos = 0;
             break;
         case 2:
             tmpName =""; //Her kører den kun 1 gang
@@ -181,10 +188,6 @@ void drawMenu() {
 }
 
 void drawPlayerCreationMenu( character*& player ) {
-    if (player != nullptr) {
-        delete player;
-        player = nullptr;
-    }
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
@@ -199,8 +202,62 @@ void drawPlayerCreationMenu( character*& player ) {
     if(enterPressed) {
         enterPressed = false;
 
-        player = new character(tmpName);
-        player->setXP(1000);
+        int sqlResult = DB.addNewHero(tmpName); //Hvis den ikke er lig med -1 så har vi success
+        if(sqlResult != -1) {
+
+            if (player != nullptr) {
+                delete player;
+             }
+
+            player = new character(tmpName, sqlResult);
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            stateOfGame = GAME;
+        }
+        else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            stateOfGame = STARTMENU;
+        }
+
+
+    }
+}
+
+void drawLoadPlayerMenu( character*& player ) {
+
+
+
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Pick a character:" << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+
+    for(int i = 0; i < loadingPlayers.size(); ++i) {
+        character hero = loadingPlayers[i];
+
+        if(i == menuPos) {
+            std::string input = "->"+ hero.getName() + "; lvl: " + std::to_string(hero.getLvl()) + "<-";
+            std::cout << "[ " << std::setw(WIDTH-15) << std::right << input << std::setw(13) << "" << " ]" << std::endl;
+        } else {
+            std::string input = hero.getName() + "; lvl: " + std::to_string(hero.getLvl());
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << input << std::setw(15) << "" << " ]" << std::endl;
+        }
+    }
+
+    if(enterPressed) {
+        enterPressed = false;
+
+        character *lastptr = nullptr;
+        if (player != nullptr) {
+            lastptr = player;
+            delete lastptr;
+        }
+
+        player = &loadingPlayers[menuPos];
+
+        //player->setXP(1000);
+
 
         stateOfGame = GAME;
     }
@@ -248,6 +305,7 @@ void keyboardCTRLFunc( character*& player ) {
                     break;
                 case KEY_QUIT:
                 case KEY_ESC:
+                    menuPos = 0;
                     stateOfGame = STARTMENU;
                     std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
                     //goto exitLoop_1;
@@ -419,7 +477,26 @@ void keyboardCTRLFunc( character*& player ) {
                 }
             }
             else if(stateOfGame == LOAD_PLAYER) {
+                switch(bogstav) {
+                case KEY_UP:
+                    if(menuPos > 0) { --menuPos; }
+                    break;
+                case KEY_DOWN:
+                    if(loadingPlayers.size() >= 1) {
+                        if(menuPos < (loadingPlayers.size()-1)) { ++menuPos; }
+                    }
+                    break;
+                case KEY_ESC:
+                    if( player != nullptr ) {
+                        stateOfGame = GAME;
+                        bogstav = 0; //DEBUG
+                    }
+                    break;
+                case KEY_ENTER:
+                    enterPressed = true;
+                    break;
 
+                }
             }
             else if(stateOfGame == GAME_OVER) {
                 switch(bogstav) {
@@ -476,13 +553,14 @@ void keyboardCTRLFunc( character*& player ) {
     }
     while(1);
     exitLoop_1:
-    //std::cout << "Exit of keyboardCTRLFunc thread" << std::endl;
+    std::cout << "Exit of keyboard thread" << std::endl;
 }
 
 int main()
 {
     //Setup
     std::system("clear"); //cls for windows
+    std::cout << "KILL THE DRAGON... booting up" << std::endl;
     srand(time(0));
     stateOfGame = STARTMENU;
     for(int y = 0; y <= HEIGHT; ++y){
@@ -491,6 +569,16 @@ int main()
         }
     }
 
+    if(!DB.isOpen()) {
+        std::cout << "[ERROR]: Database did not open" << std::endl;
+        return 1; //Ikke nul, men alt andet da 0 er når den afslutter med success
+    }
+
+    if(!DB.checkUserTable(MAX_NAME_LENGTH)) {
+        std::cout << "[ERROR]: Table not okay" << std::endl;
+        return 1; //Ikke nul, men alt andet da 0 er når den afslutter med success
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     character* player = nullptr;
 
     std::thread keyboardThread(keyboardCTRLFunc, std::ref(player));
@@ -500,7 +588,12 @@ int main()
         std::system("clear"); //cls for windows
         switch(stateOfGame) {
         case STARTMENU:
+            menuOptions = 4;
             drawMenu();
+            break;
+        case LOAD_PLAYER:
+            menuOptions = loadingPlayers.size();
+            drawLoadPlayerMenu(player);
             break;
         case CREATE_PLAYER:
             drawPlayerCreationMenu(player);

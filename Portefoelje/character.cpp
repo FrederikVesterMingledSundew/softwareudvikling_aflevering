@@ -1,8 +1,10 @@
 #include "character.h"
 
-character::character(std::string name):mName(name) {}
+character::character();
 
-character::character(std::string name, int xp, int lvl):mName(name), mXP(xp), mLvl(lvl) {}
+character::character(std::string name, int ID): mName(name), mID(ID) {}
+
+character::character(std::string name, int ID, int xp, int lvl, int Hp, int Strength):mName(name), mID(ID), mXP(xp), mLvl(lvl), mHp(Hp), mStrength(Strength) {}
 
 const int character::getXP() const {
     return mXP;
@@ -19,6 +21,10 @@ const int character::getLvl() const {
 void character::lvlUp() {
     ++mLvl;
     mXP -= mLvl*1000;
+}
+
+const int character::getId() const {
+    return mID;
 }
 
 const std::string character::getName() const {
