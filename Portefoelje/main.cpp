@@ -29,7 +29,7 @@
 #define KEY_ESC 27 // ESC KEY
 #define KEY_BACKSPACE 127 //BACKSPACE KEY
 
-enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, MONSTER, MONSTER_STATUS, GAME_OVER, WON, EXIT};
+enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, LEVEL_UP, MONSTER, MONSTER_STATUS, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
 //Variabler
@@ -89,7 +89,7 @@ void drawGame(character &player, int &pos) {
             }
             if(taken == 'C') {
                 int xp = player.getXP();
-                player.setXP(xp+1);
+                player.setXP(xp+player.getLvl());
                 std::cout << '\a';
             }
             if(taken == 'M') {
@@ -175,7 +175,7 @@ void drawMenu() {
             stateOfGame = CREATE_PLAYER;
             break;
         case 1:
-            stateOfGame = EXIT;
+            stateOfGame = LEVEL_UP;
             break;
         case 0:
             stateOfGame = EXIT;
@@ -187,7 +187,7 @@ void drawMenu() {
     }
 }
 
-void drawPlayerCreationMenu( character*& player ) {
+void drawPlayerCreationMenu( character& player ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
@@ -205,16 +205,12 @@ void drawPlayerCreationMenu( character*& player ) {
         int sqlResult = DB.addNewHero(tmpName); //Hvis den ikke er lig med -1 så har vi success
         if(sqlResult != -1) {
 
-            if (player != nullptr) {
-                delete player;
-             }
-
-            player = new character(tmpName, sqlResult);
-            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            player = character(tmpName, sqlResult);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             stateOfGame = GAME;
         }
         else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+            std::this_thread::sleep_for(std::chrono::milliseconds(5000)); // for errordetection
             stateOfGame = STARTMENU;
         }
 
@@ -222,9 +218,7 @@ void drawPlayerCreationMenu( character*& player ) {
     }
 }
 
-void drawLoadPlayerMenu( character*& player ) {
-
-
+void drawLoadPlayerMenu( character& player ) {
 
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
@@ -248,13 +242,7 @@ void drawLoadPlayerMenu( character*& player ) {
     if(enterPressed) {
         enterPressed = false;
 
-        character *lastptr = nullptr;
-        if (player != nullptr) {
-            lastptr = player;
-            delete lastptr;
-        }
-
-        player = &loadingPlayers[menuPos];
+        player = loadingPlayers[menuPos];
 
         //player->setXP(1000);
 
@@ -263,7 +251,50 @@ void drawLoadPlayerMenu( character*& player ) {
     }
 }
 
-void keyboardCTRLFunc( character*& player ) {
+void drawLevelUp( character &player ) {
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+
+    if( player.getXP() > (player.getLvl()*1000)) { //Klar til lvl up
+        std::cout << "[ " << std::setw(WIDTH-1) << "You are ready to level up!!!" << "]" << std::endl;
+        std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    }
+    else { //Ikke klar
+        std::string minXPstring = "You need at least: " +std::to_string(player.getLvl()*1000)+ "XP!!!";
+
+        std::cout << "[ " << std::setw(WIDTH-1) << "You are NOT ready to level up!!!" << "]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-1) << minXPstring << "]" << std::endl;
+        std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    }
+
+
+    /*for(int i = 0; i < loadingPlayers.size(); ++i) {
+        character hero = loadingPlayers[i];
+
+        if(i == menuPos) {
+            std::string input = "->"+ hero.getName() + "; lvl: " + std::to_string(hero.getLvl()) + "<-";
+            std::cout << "[ " << std::setw(WIDTH-15) << std::right << input << std::setw(13) << "" << " ]" << std::endl;
+        } else {
+            std::string input = hero.getName() + "; lvl: " + std::to_string(hero.getLvl());
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << input << std::setw(15) << "" << " ]" << std::endl;
+        }
+    }
+
+    if(enterPressed) {
+        enterPressed = false;
+
+        player = loadingPlayers[menuPos];
+
+        //player->setXP(1000);
+
+
+        stateOfGame = GAME;
+    }*/
+}
+
+void keyboardCTRLFunc( character &player ) {
 
     int bogstav;
     do
@@ -283,7 +314,8 @@ void keyboardCTRLFunc( character*& player ) {
                     if(menuPos > 0) { --menuPos; }
                     break;
                 case KEY_ESC:
-                    if( player != nullptr ) {
+
+                    if( player.getId() != -1 ) {
                         stateOfGame = GAME;
                         bogstav = 0; //DEBUG
                     }
@@ -305,8 +337,11 @@ void keyboardCTRLFunc( character*& player ) {
                     break;
                 case KEY_QUIT:
                 case KEY_ESC:
-                    menuPos = 0;
+                    menuPos = 3; //Top af menu
                     stateOfGame = STARTMENU;
+                    if(DB.saveHero(player)) {
+                        std::cout << "GAME SAVED" << std::endl;
+                    }
                     std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
                     //goto exitLoop_1;
                     break;
@@ -435,6 +470,7 @@ void keyboardCTRLFunc( character*& player ) {
                         enterPressed = true;
                         break;
                     case KEY_ESC:
+                        menuPos = 3;
                         stateOfGame = STARTMENU;
                         std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
                         //goto exitLoop_1;
@@ -487,15 +523,26 @@ void keyboardCTRLFunc( character*& player ) {
                     }
                     break;
                 case KEY_ESC:
-                    if( player != nullptr ) {
-                        stateOfGame = GAME;
-                        bogstav = 0; //DEBUG
-                    }
+                    menuPos = 3;
+                    stateOfGame = STARTMENU;
                     break;
                 case KEY_ENTER:
                     enterPressed = true;
                     break;
 
+                }
+            }
+            else if(stateOfGame == LEVEL_UP) {
+                switch(bogstav) {
+                case KEY_ENTER:
+                    enterPressed = true;
+                    break;
+                case KEY_QUIT:
+                case KEY_ESC:
+                    stateOfGame = STARTMENU;
+                    std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
+                    //goto exitLoop_1;
+                    break;
                 }
             }
             else if(stateOfGame == GAME_OVER) {
@@ -579,7 +626,7 @@ int main()
         return 1; //Ikke nul, men alt andet da 0 er når den afslutter med success
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    character* player = nullptr;
+    character player;
 
     std::thread keyboardThread(keyboardCTRLFunc, std::ref(player));
 
@@ -598,8 +645,11 @@ int main()
         case CREATE_PLAYER:
             drawPlayerCreationMenu(player);
             break;
+        case LEVEL_UP:
+            drawLevelUp(player);
+            break;
         case GAME:
-            drawGame(*player, playerPos);
+            drawGame(player, playerPos);
             break;
         case EXIT:
             goto leaveGame;
@@ -626,10 +676,6 @@ leaveGame:
     }
 
 
-    if (player != nullptr) {
-        delete player;
-        player = nullptr;
-    }
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     return 0;
 }

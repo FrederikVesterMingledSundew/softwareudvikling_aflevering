@@ -135,17 +135,19 @@ bool sqlDB::saveHero(const character &hero) {
         return false;
     }
 
-    /*sqlite3_stmt* stmt;
-    const char* insertSQL = "INSERT INTO heroes (HERO, XP, LEVEL, HP, STRENGTH) VALUES (?, 0, 0, ?, ?);";
+    sqlite3_stmt* stmt;
+    const char* insertSQL = "UPDATE heroes SET `XP` = ?, `LEVEL` = ?, `HP` = ?, `STRENGTH` = ? WHERE `ID` = ?;";
 
     if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
         return false;
     }
 
-    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, START_HP);
-    sqlite3_bind_int(stmt, 3, START_STRENGTH);
+    sqlite3_bind_int(stmt, 1, hero.getXP());
+    sqlite3_bind_int(stmt, 2, hero.getLvl());
+    sqlite3_bind_int(stmt, 3, hero.getHp());
+    sqlite3_bind_int(stmt, 4, hero.getStrength());
+    sqlite3_bind_int(stmt, 5, hero.getId());
 
     // Execute the statement
     if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -156,6 +158,6 @@ bool sqlDB::saveHero(const character &hero) {
 
 
     // Finalize the statement to free resources
-    sqlite3_finalize(stmt);*/
+    sqlite3_finalize(stmt);
     return true;
 }

@@ -1,6 +1,6 @@
 #include "character.h"
 
-character::character();
+character::character() {};
 
 character::character(std::string name, int ID): mName(name), mID(ID) {}
 
@@ -21,6 +21,14 @@ const int character::getLvl() const {
 void character::lvlUp() {
     ++mLvl;
     mXP -= mLvl*1000;
+}
+
+const int character::getHp() const {
+    return mHp;
+}
+
+const int character::getStrength() const {
+    return mStrength;
 }
 
 const int character::getId() const {
