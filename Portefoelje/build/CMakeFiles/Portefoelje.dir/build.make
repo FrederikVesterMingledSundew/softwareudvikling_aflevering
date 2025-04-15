@@ -97,19 +97,52 @@ CMakeFiles/Portefoelje.dir/character.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Portefoelje.dir/character.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/character.cpp" -o CMakeFiles/Portefoelje.dir/character.cpp.s
 
+CMakeFiles/Portefoelje.dir/keyboard.cpp.o: CMakeFiles/Portefoelje.dir/flags.make
+CMakeFiles/Portefoelje.dir/keyboard.cpp.o: /mnt/c/Users/frede/OneDrive/Skole/SDU/2.\ Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/keyboard.cpp
+CMakeFiles/Portefoelje.dir/keyboard.cpp.o: CMakeFiles/Portefoelje.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Portefoelje.dir/keyboard.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Portefoelje.dir/keyboard.cpp.o -MF CMakeFiles/Portefoelje.dir/keyboard.cpp.o.d -o CMakeFiles/Portefoelje.dir/keyboard.cpp.o -c "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/keyboard.cpp"
+
+CMakeFiles/Portefoelje.dir/keyboard.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Portefoelje.dir/keyboard.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/keyboard.cpp" > CMakeFiles/Portefoelje.dir/keyboard.cpp.i
+
+CMakeFiles/Portefoelje.dir/keyboard.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Portefoelje.dir/keyboard.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/keyboard.cpp" -o CMakeFiles/Portefoelje.dir/keyboard.cpp.s
+
+CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o: CMakeFiles/Portefoelje.dir/flags.make
+CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o: /mnt/c/Users/frede/OneDrive/Skole/SDU/2.\ Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/SQLdatabase.cpp
+CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o: CMakeFiles/Portefoelje.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o -MF CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o.d -o CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o -c "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/SQLdatabase.cpp"
+
+CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/SQLdatabase.cpp" > CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.i
+
+CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/SQLdatabase.cpp" -o CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.s
+
 # Object files for target Portefoelje
 Portefoelje_OBJECTS = \
 "CMakeFiles/Portefoelje.dir/main.cpp.o" \
-"CMakeFiles/Portefoelje.dir/character.cpp.o"
+"CMakeFiles/Portefoelje.dir/character.cpp.o" \
+"CMakeFiles/Portefoelje.dir/keyboard.cpp.o" \
+"CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o"
 
 # External object files for target Portefoelje
 Portefoelje_EXTERNAL_OBJECTS =
 
 Portefoelje: CMakeFiles/Portefoelje.dir/main.cpp.o
 Portefoelje: CMakeFiles/Portefoelje.dir/character.cpp.o
+Portefoelje: CMakeFiles/Portefoelje.dir/keyboard.cpp.o
+Portefoelje: CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o
 Portefoelje: CMakeFiles/Portefoelje.dir/build.make
+Portefoelje: /usr/lib/x86_64-linux-gnu/libsqlite3.so
 Portefoelje: CMakeFiles/Portefoelje.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable Portefoelje"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable Portefoelje"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Portefoelje.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

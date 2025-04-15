@@ -15,7 +15,7 @@ public:
     const std::string getName() const;
 
 private:
-    int mXP = 0, mLvl = 0;
+    int mXP = 0, mLvl = 0, mHp = 5, mStrength = 5;
     std::string mName {};
 };
 

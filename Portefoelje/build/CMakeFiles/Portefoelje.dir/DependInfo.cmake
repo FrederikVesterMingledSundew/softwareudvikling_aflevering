@@ -8,7 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/SQLdatabase.cpp" "CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o" "gcc" "CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o.d"
   "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/character.cpp" "CMakeFiles/Portefoelje.dir/character.cpp.o" "gcc" "CMakeFiles/Portefoelje.dir/character.cpp.o.d"
+  "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/keyboard.cpp" "CMakeFiles/Portefoelje.dir/keyboard.cpp.o" "gcc" "CMakeFiles/Portefoelje.dir/keyboard.cpp.o.d"
   "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/main.cpp" "CMakeFiles/Portefoelje.dir/main.cpp.o" "gcc" "CMakeFiles/Portefoelje.dir/main.cpp.o.d"
   )
 

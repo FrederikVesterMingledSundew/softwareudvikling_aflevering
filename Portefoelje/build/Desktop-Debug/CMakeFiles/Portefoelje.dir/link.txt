@@ -1,1 +1,1 @@
-/usr/bin/g++-13 -DQT_QML_DEBUG -g CMakeFiles/Portefoelje.dir/main.cpp.o CMakeFiles/Portefoelje.dir/character.cpp.o CMakeFiles/Portefoelje.dir/keyboard.cpp.o -o Portefoelje 
+/usr/bin/g++-13 -DQT_QML_DEBUG -g CMakeFiles/Portefoelje.dir/main.cpp.o CMakeFiles/Portefoelje.dir/character.cpp.o CMakeFiles/Portefoelje.dir/keyboard.cpp.o CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o -o Portefoelje  /usr/lib/x86_64-linux-gnu/libsqlite3.so 

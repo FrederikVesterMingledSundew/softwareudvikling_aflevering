@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o"
+  "CMakeFiles/Portefoelje.dir/SQLdatabase.cpp.o.d"
   "CMakeFiles/Portefoelje.dir/character.cpp.o"
   "CMakeFiles/Portefoelje.dir/character.cpp.o.d"
   "CMakeFiles/Portefoelje.dir/keyboard.cpp.o"
