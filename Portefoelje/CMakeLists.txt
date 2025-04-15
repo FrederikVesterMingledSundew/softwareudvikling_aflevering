@@ -5,9 +5,17 @@ project(Portefoelje LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+find_package(SQLite3 REQUIRED)
+
 add_executable(Portefoelje main.cpp
     character.h character.cpp
-    keyboard.h keyboard.cpp)
+    keyboard.h keyboard.cpp
+    SQLdatabase.h SQLdatabase.cpp)
+
+if (SQLite3_FOUND)
+include_directories(${SQLite3_INCLUDE_DIRS})
+target_link_libraries(Portefoelje ${SQLite3_LIBRARIES})
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS Portefoelje
