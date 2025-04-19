@@ -26,6 +26,8 @@ public:
 
     bool saveHero(const character &hero);
 
+    bool killHero(const character &hero);
+
 private:
     std::string mFile;
     sqlite3* mSqlDB = nullptr;

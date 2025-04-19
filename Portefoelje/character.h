@@ -2,9 +2,9 @@
 #define CHARACTER_H
 
 #include <string>
-#define START_HP 5
+#define START_HP 10
 #define START_STRENGTH 5
-#define START_LEVEL 5
+#define START_LEVEL 1
 
 class character
 {
@@ -17,7 +17,10 @@ public:
     const int getLvl() const;
     void lvlUp();
     const int getHp() const;
+    void gainHP();
     const int getStrength() const;
+    void gainStrength();
+    void hit(const int &damage);
     const int getId() const;
     const std::string getName() const;
 

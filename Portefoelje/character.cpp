@@ -19,16 +19,33 @@ const int character::getLvl() const {
 }
 
 void character::lvlUp() {
-    ++mLvl;
+
     mXP -= mLvl*1000;
+    ++mLvl;
+
+    mHp = 10+(2*mLvl);
+    mStrength = 2+mLvl;
 }
 
 const int character::getHp() const {
     return mHp;
 }
 
+void character::gainHP() {
+    ++this->mHp;
+}
+
+void character::gainStrength() {
+    ++this->mStrength;
+}
+
+
 const int character::getStrength() const {
     return mStrength;
+}
+
+void character::hit(const int &damage) {
+    this->mHp -= damage;
 }
 
 const int character::getId() const {

@@ -8,8 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SQLite3 REQUIRED)
 
 add_executable(Portefoelje main.cpp
-    character.h character.cpp
     keyboard.h keyboard.cpp
+    character.h character.cpp
+    monster.h monster.cpp
     SQLdatabase.h SQLdatabase.cpp)
 
 if (SQLite3_FOUND)

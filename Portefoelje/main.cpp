@@ -8,6 +8,7 @@
 #include <random>
 #include <vector>
 
+#include "monster.h"
 #include "character.h"
 #include "SQLdatabase.h"
 #include "keyboard.h"
@@ -29,7 +30,7 @@
 #define KEY_ESC 27 // ESC KEY
 #define KEY_BACKSPACE 127 //BACKSPACE KEY
 
-enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, LEVEL_UP, MONSTER, MONSTER_STATUS, GAME_OVER, WON, EXIT};
+enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
 //Variabler
@@ -37,6 +38,7 @@ bool enterPressed;
 int menuPos = 3; //standard
 static int menuOptions = 4; //Max
 static int playerPos = WIDTH/2;
+static monster currentMonster = monster();
 static std::string tmpName = {};
 static std::string windowArr[HEIGHT] = {};
 std::default_random_engine generator;
@@ -59,7 +61,7 @@ std::string generateLine(character &player) {
     std::string output = {};
     std::uniform_int_distribution<int> distribution(1,1000);
     for(char c = 0; c < WIDTH; ++c) {
-        int randomGenerate = distribution(generator);;
+        int randomGenerate = distribution(generator);
         if(randomGenerate >= (DIVIDER - divideCoins)) { //Hvis større eller lig med end 950
             output += "C";
         } else if(randomGenerate >= (DIVIDER - divideCoins - divideMonsters) && randomGenerate < (DIVIDER - divideCoins)) { //Hvis større eller lig med 940 og mindre end 950
@@ -76,7 +78,7 @@ std::string generateLine(character &player) {
 
 void drawGame(character &player, int &pos) {
     std::cout << "[ XP: " << std::setw(6) << std::right << player.getXP() << " Lvl: " << std::setw(2) << player.getLvl() << std::right << " NAME: " << std::setw(13) << std::right  << player.getName() << " ]" << std::endl;
-    std::cout << "[ pID: " << std::setw(34) << player.getId() << "]" << std::endl;
+    std::cout << "[ pID: " << std::setw(5) << player.getId() << " pHP: " << std::setw(5) << player.getHp() << " pDMG: " << std::setw(5) << player.getStrength() << std::setw(WIDTH-33) << " ]" /*<< playerPos*/ << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
 
     for(int y = 0; y <= HEIGHT; y++) {
@@ -89,11 +91,27 @@ void drawGame(character &player, int &pos) {
             }
             if(taken == 'C') {
                 int xp = player.getXP();
-                player.setXP(xp+player.getLvl());
+                player.setXP(xp+(player.getLvl()*100));
+                if(player.getHp() < (10+(2*player.getLvl()))) {
+                    player.gainHP();
+                }
+                if(player.getStrength() < (2+player.getLvl())) {
+                    player.gainStrength();
+                }
                 std::cout << '\a';
             }
             if(taken == 'M') {
+                std::uniform_int_distribution<int> distribution(1,100);
+                int randomLevel = distribution(generator);
+                currentMonster = monster(randomLevel);
                 std::cout << '\a';
+                menuPos = 0;
+                stateOfGame = MONSTER;
+            }
+            if(taken == 'D') {
+                currentMonster = monster(100, "DRAGON BOSS");
+                std::cout << '\a';
+                stateOfGame = MONSTER_FIGHT;
             }
             break;
         }
@@ -120,6 +138,125 @@ void drawGame(character &player, int &pos) {
 
 }
 
+void drawMonsterConflict( character& player,  monster& monsterKiller ) {
+
+    std::string monsterNameString = "You have met " + monsterKiller.getName();
+    std::string monsterStats = "It has " + std::to_string(monsterKiller.getHp())  + " HP and " + std::to_string(monsterKiller.getDamage()) + " damage!";
+    std::string playerStats = "You have " + std::to_string(player.getHp())  + " HP and " + std::to_string(player.getStrength()) + " damage!";
+
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << monsterNameString << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << monsterStats << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << playerStats << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Do you dare to fight?" << "]" << std::endl;
+
+    switch(menuPos) {
+    case 0:
+        std::cout << "[ " << std::setw(WIDTH-17) << std::right << "->FIGHT<-" << std::setw(15) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-20) << std::right << "FLEE" << std::setw(18) << "" << " ]" << std::left << std::endl;
+        break;
+    case 1:
+        std::cout << "[ " << std::setw(WIDTH-19) << std::right << "FIGHT" << std::setw(17) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-18) << std::right << "->FLEE<-" << std::setw(16) << "" << " ]" << std::left << std::endl;
+        break;
+    default:
+        std::cout << "[ " << std::setw(WIDTH-1) << "Out of bounds for some reason" << " ]" << std::endl;
+    }
+
+    if(enterPressed) {
+        enterPressed = false;
+
+        if(menuPos == 0) {
+            stateOfGame = MONSTER_FIGHT;
+        } else {
+            stateOfGame = GAME;
+        }
+    }
+}
+
+void drawMonsterFight( character& player,  monster& monsterKiller ) {
+
+    std::string monsterNameString = "You have met " + monsterKiller.getName();
+    std::string monsterStats = "It has " + std::to_string(monsterKiller.getHp())  + " HP and " + std::to_string(monsterKiller.getDamage()) + " damage!";
+    std::string playerStats = "You have " + std::to_string(player.getHp())  + " HP and " + std::to_string(player.getStrength()) + " damage!";
+
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << monsterNameString << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << monsterStats << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << playerStats << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    //std::cout << "[ " << std::setw(WIDTH-1) << "Press R to flee for you life" << "]" << std::endl;
+
+    std::uniform_int_distribution<int> distribution(25,100);
+    double hitSuccess = (static_cast<double>(distribution(generator))/100);
+
+    std::string successString = std::to_string(static_cast<int>(hitSuccess*100)) + "%";
+    std::string damageStr;
+
+    std::cout << "[ " << std::setw(WIDTH/2-1) << "Hitsuccess: " << std::setw(WIDTH/2-1) << successString << " ]" << std::endl;
+
+
+    switch(menuPos) {
+    case 0:
+        damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+" damage!!";
+        std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+        monsterKiller.hit(player.getStrength() * hitSuccess);
+        menuPos = 1;
+        break;
+    case 1:
+        damageStr = "Opponents turn: " + std::to_string(monsterKiller.getDamage() * hitSuccess)+" damage!!";
+        std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+        player.hit(monsterKiller.getDamage() * hitSuccess);
+        menuPos = 0;
+        break;
+    default:
+        std::cout << "[ " << std::setw(WIDTH-1) << "Out of bounds for some reason" << " ]" << std::endl;
+    }
+
+    if(monsterKiller.getHp() <= 0) {
+        int xp = player.getXP();
+        player.setXP(xp+monsterKiller.getWinXP());
+        stateOfGame = GAME;
+    }
+
+    if(player.getHp() <= 0) {
+        if(!DB.killHero(player)) { //Hvis SQL fejler. Så man kan se fejlen
+            std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        }
+        player = character();
+
+        stateOfGame = GAME_OVER;
+        return;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
+
+void drawGameOver() {
+
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "You died and thereby" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "lost the game!" << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Start a new game and try again" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "This character is lost forever" << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Press ESC/ENTER to continue" << "]" << std::endl;
+
+}
+
 void drawMenu() {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
@@ -127,34 +264,35 @@ void drawMenu() {
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
 
     std::cout << "[ " << std::setw(WIDTH-1) << "Controls:" << "]" << std::endl;
-    std::cout << "[ " << std::setw(WIDTH-2) << "LEFT(GAME): A, RIGHT(GAME): D" << " ]" << std::endl;
-    std::cout << "[ " << std::setw(WIDTH-2) << "UP(MENU): W, DOWN(MENU): S" << " ]" << std::endl;
-    std::cout << "[ " << std::setw(WIDTH-2) << "ENTER(MENU): ENTER" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "LEFT: A, RIGHT: D" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "UP: W, DOWN: S" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "ENTER: ENTER, QUIT: ESC" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "AUTOSAVE ON ESC" << " ]" << std::endl;
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
 
     switch(menuPos) {
     case 3:
         std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "LEVEL UP" << std::setw(15) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
         break;
     case 2:
         std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "LEVEL UP" << std::setw(15) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
         break;
     case 1:
         std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-15) << "->LEVEL UP<-" << std::setw(13) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
         break;
     case 0:
         std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "LEVEL UP" << std::setw(15) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
         std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
         break;
     default:
@@ -175,7 +313,7 @@ void drawMenu() {
             stateOfGame = CREATE_PLAYER;
             break;
         case 1:
-            stateOfGame = LEVEL_UP;
+            stateOfGame = ABOUT;
             break;
         case 0:
             stateOfGame = EXIT;
@@ -251,47 +389,30 @@ void drawLoadPlayerMenu( character& player ) {
     }
 }
 
-void drawLevelUp( character &player ) {
+void drawAbout() {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
 
-    if( player.getXP() > (player.getLvl()*1000)) { //Klar til lvl up
-        std::cout << "[ " << std::setw(WIDTH-1) << "You are ready to level up!!!" << "]" << std::endl;
-        std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
-    }
-    else { //Ikke klar
-        std::string minXPstring = "You need at least: " +std::to_string(player.getLvl()*1000)+ "XP!!!";
-
-        std::cout << "[ " << std::setw(WIDTH-1) << "You are NOT ready to level up!!!" << "]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-1) << minXPstring << "]" << std::endl;
-        std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
-    }
-
-
-    /*for(int i = 0; i < loadingPlayers.size(); ++i) {
-        character hero = loadingPlayers[i];
-
-        if(i == menuPos) {
-            std::string input = "->"+ hero.getName() + "; lvl: " + std::to_string(hero.getLvl()) + "<-";
-            std::cout << "[ " << std::setw(WIDTH-15) << std::right << input << std::setw(13) << "" << " ]" << std::endl;
-        } else {
-            std::string input = hero.getName() + "; lvl: " + std::to_string(hero.getLvl());
-            std::cout << "[ " << std::setw(WIDTH-17) << std::right << input << std::setw(15) << "" << " ]" << std::endl;
-        }
-    }
-
-    if(enterPressed) {
-        enterPressed = false;
-
-        player = loadingPlayers[menuPos];
-
-        //player->setXP(1000);
-
-
-        stateOfGame = GAME;
-    }*/
+    std::cout << "[ " << std::setw(WIDTH-1) << "You are a hero. - You are marked 'H'" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Kill all the monsters you can to gain" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "XP, but avoid them you cannot." << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << " - Monsters are marked 'M'" << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Most monsters you can flee from" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "But the dragon you cannot" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "The dragon is the hardest to defeat." << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "You need to defeat the dragon to win." << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << " - The dragon is marked 'D'" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Gain as much experience as you can" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "and try your luck" << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "The games saves automatically on" << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH-20) << std::right << "STARTMENU"<< std::setw(WIDTH-19) << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1)<< std::left << "Do not die or you will have to start " << "]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH-20) << std::right << "OVER!!!"  << std::setw(WIDTH-19) << "]" << std::endl;
 }
 
 void keyboardCTRLFunc( character &player ) {
@@ -330,7 +451,7 @@ void keyboardCTRLFunc( character &player ) {
             else if(stateOfGame == GAME) {
                 switch(bogstav) {
                 case KEY_LEFT:
-                    if(playerPos > 0) { --playerPos; }
+                    if(playerPos > 1) { --playerPos; }
                     break;
                 case KEY_RIGHT:
                     if(playerPos < WIDTH) { ++playerPos; }
@@ -349,6 +470,27 @@ void keyboardCTRLFunc( character &player ) {
                 default:
                     std::cout << "[DEBUG]: KEY pressed: " << bogstav << std::endl;
                     ;
+                }
+            }
+            else if(stateOfGame == MONSTER) {
+                switch(bogstav) {
+                case KEY_UP:
+                    if(menuPos > 0) { --menuPos; }
+                    break;
+                case KEY_DOWN:
+                    if(menuPos < (menuOptions-1)) { ++menuPos; }
+                    break;
+                case KEY_ESC:
+
+                    if( player.getId() != -1 ) {
+                        stateOfGame = GAME;
+                        bogstav = 0; //DEBUG
+                    }
+                    break;
+                case KEY_ENTER:
+                    enterPressed = true;
+                    break;
+
                 }
             }
             else if(stateOfGame == CREATE_PLAYER) {
@@ -490,28 +632,6 @@ void keyboardCTRLFunc( character &player ) {
                     }
                 }
             }
-            else if(stateOfGame == MONSTER) {
-                switch(bogstav) {
-                case 'y':
-                case 'Y':
-                    stateOfGame == MONSTER_STATUS; // FIGHT
-                    break;
-                case 'n':
-                case 'N':
-                    // FLEE
-                    break;
-                case KEY_QUIT:
-                case KEY_ESC:
-                    stateOfGame = STARTMENU;
-                    std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
-                    //goto exitLoop_1;
-                    break;
-
-                default:
-                    std::cout << "[DEBUG]: KEY pressed: " << bogstav << std::endl;
-                    ;
-                }
-            }
             else if(stateOfGame == LOAD_PLAYER) {
                 switch(bogstav) {
                 case KEY_UP:
@@ -532,15 +652,12 @@ void keyboardCTRLFunc( character &player ) {
 
                 }
             }
-            else if(stateOfGame == LEVEL_UP) {
+            else if(stateOfGame == ABOUT) {
                 switch(bogstav) {
                 case KEY_ENTER:
-                    enterPressed = true;
-                    break;
                 case KEY_QUIT:
                 case KEY_ESC:
                     stateOfGame = STARTMENU;
-                    std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
                     //goto exitLoop_1;
                     break;
                 }
@@ -548,8 +665,6 @@ void keyboardCTRLFunc( character &player ) {
             else if(stateOfGame == GAME_OVER) {
                 switch(bogstav) {
                 case KEY_ENTER:
-                    enterPressed = true;
-                    break;
                 case KEY_QUIT:
                 case KEY_ESC:
                     stateOfGame = STARTMENU;
@@ -633,6 +748,10 @@ int main()
     do
     {
         std::system("clear"); //cls for windows
+        if(player.getXP() >= (player.getLvl()*1000)) {
+            player.lvlUp();
+        }
+
         switch(stateOfGame) {
         case STARTMENU:
             menuOptions = 4;
@@ -645,11 +764,22 @@ int main()
         case CREATE_PLAYER:
             drawPlayerCreationMenu(player);
             break;
-        case LEVEL_UP:
-            drawLevelUp(player);
+        case ABOUT:
+            drawAbout();
             break;
         case GAME:
             drawGame(player, playerPos);
+            break;
+        case MONSTER:
+            menuOptions = 2;
+            drawMonsterConflict(player, currentMonster);
+            break;
+        case MONSTER_FIGHT:
+            menuOptions = 2; //Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
+            drawMonsterFight(player, currentMonster);
+            break;
+        case GAME_OVER:
+            drawGameOver();
             break;
         case EXIT:
             goto leaveGame;
@@ -658,7 +788,7 @@ int main()
             goto leaveGame;
             break;*/
         default:
-            std::cout << "[DEBUG]: ERROR !" << std::endl;
+            std::cout << "[DEBUG]: ERROR.. NO MENU !" << std::endl;
         }
 
 

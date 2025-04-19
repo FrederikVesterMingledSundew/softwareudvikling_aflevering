@@ -7,6 +7,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Portefoelje.dir/keyboard.cpp.o.d"
   "CMakeFiles/Portefoelje.dir/main.cpp.o"
   "CMakeFiles/Portefoelje.dir/main.cpp.o.d"
+  "CMakeFiles/Portefoelje.dir/monster.cpp.o"
+  "CMakeFiles/Portefoelje.dir/monster.cpp.o.d"
   "Portefoelje"
   "Portefoelje.pdb"
 )

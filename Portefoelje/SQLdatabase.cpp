@@ -161,3 +161,31 @@ bool sqlDB::saveHero(const character &hero) {
     sqlite3_finalize(stmt);
     return true;
 }
+
+bool sqlDB::killHero(const character &hero) {
+    if(!this->isOpen()) {
+        std::cout << "[ERROR]: Database is not open." << std::endl;
+        return false;
+    }
+
+    sqlite3_stmt* stmt;
+    const char* insertSQL = "DELETE FROM heroes WHERE `ID` = ? LIMIT 1;";
+
+    if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
+        return false;
+    }
+    sqlite3_bind_int(stmt, 1, hero.getId());
+
+    // Execute the statement
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "[ERROR]: Failed to execute statement: \n" << sqlite3_errmsg(mSqlDB) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+
+    // Finalize the statement to free resources
+    sqlite3_finalize(stmt);
+    return true;
+}
