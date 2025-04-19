@@ -345,6 +345,13 @@ void drawPlayerCreationMenu( character& player ) {
 
             player = character(tmpName, sqlResult);
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+            for(int y = 0; y <= HEIGHT; ++y){ //Start med en tom bane
+                windowArr[y].clear();
+                for(int x = 0; x < WIDTH; ++x){
+                    windowArr[y] += ' ';
+                }
+            }
             stateOfGame = GAME;
         }
         else {
@@ -383,7 +390,12 @@ void drawLoadPlayerMenu( character& player ) {
         player = loadingPlayers[menuPos];
 
         //player->setXP(1000);
-
+        for(int y = 0; y <= HEIGHT; ++y){ //Emptying the field
+            windowArr[y].clear();
+            for(int x = 0; x < WIDTH; ++x){
+                windowArr[y] += ' ';
+            }
+        }
 
         stateOfGame = GAME;
     }
@@ -462,8 +474,11 @@ void keyboardCTRLFunc( character &player ) {
                     stateOfGame = STARTMENU;
                     if(DB.saveHero(player)) {
                         std::cout << "GAME SAVED" << std::endl;
+                    } else {
+                        std::cout << "GAME NOT SAVED - CHECK SQL" << std::endl;
                     }
-                    std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    //std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
                     //goto exitLoop_1;
                     break;
 

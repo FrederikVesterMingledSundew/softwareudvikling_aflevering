@@ -1,0 +1,7 @@
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/Portefoelje.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/edit_cache.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/list_install_components.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/install.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/install/local.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-MinSizeRel/CMakeFiles/install/strip.dir

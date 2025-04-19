@@ -1,0 +1,7 @@
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/Portefoelje.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/edit_cache.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/list_install_components.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/install.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/install/local.dir
+/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Profile/CMakeFiles/install/strip.dir

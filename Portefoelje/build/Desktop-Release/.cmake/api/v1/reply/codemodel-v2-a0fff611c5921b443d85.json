@@ -7,7 +7,7 @@
 				{
 					"build" : ".",
 					"hasInstallRule" : true,
-					"jsonFile" : "directory-.-68bc20215165c2e44722.json",
+					"jsonFile" : "directory-.-Release-330ad53fb8753e9d8fa8.json",
 					"minimumCMakeVersion" : 
 					{
 						"string" : "3.5"
@@ -20,7 +20,7 @@
 					]
 				}
 			],
-			"name" : "",
+			"name" : "Release",
 			"projects" : 
 			[
 				{
@@ -40,7 +40,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Portefoelje::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Portefoelje-65231cb2f9054044676d.json",
+					"jsonFile" : "target-Portefoelje-Release-2cc55dae805f44698757.json",
 					"name" : "Portefoelje",
 					"projectIndex" : 0
 				}
@@ -50,7 +50,7 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build",
+		"build" : "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje/build/Desktop-Release",
 		"source" : "/mnt/c/Users/frede/OneDrive/Skole/SDU/2. Semester/Softwareudvikling/Git/AfleveringsProjekt/Portefoelje"
 	},
 	"version" : 
