@@ -41,7 +41,7 @@
 #define KEY_ESC 27 // ESC KEY
 #define KEY_BACKSPACE 127 //BACKSPACE KEY
 
-enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, GAME_OVER, WON, EXIT};
+enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, CAVE_INTRO, CAVE, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
 //Variabler
@@ -105,29 +105,38 @@ void drawGame(character &player, int &pos) {
             if(windowArr[2].length() >= pos) {
                 taken = windowArr[2].at(pos-1); //Det her er den første process der kører. Ergo er den vi skal kigge efter 2 oppe når vi kigger efter den
             }
-            if(taken == 'C') {
+            if(taken == 'C') { //Coin and health
+
                 int xp = player.getXP();
                 player.setXP(xp+(player.getLvl()*100));
-                if(player.getHp() < (10+(2*player.getLvl()))) {
+                if(player.getHp() < (10+(2*player.getLvl()))) { //If you need health, you will get health, These numbers are from the assignment
                     player.gainHP();
                 }
-                if(player.getStrength() < (2+player.getLvl())) {
+                if(player.getStrength() < (2+player.getLvl())) { //If you need strength, you will get strength, These numbers are from the assignment
                     player.gainStrength();
                 }
-                std::cout << '\a';
+                std::cout << '\a'; //Alert sound
             }
-            if(taken == 'M') {
+            if(taken == 'M') { //Monster
+
                 std::uniform_int_distribution<int> distribution(1,100);
                 int randomLevel = distribution(generator);
                 currentMonster = monster(randomLevel);
-                std::cout << '\a';
+                std::cout << '\a'; //Alert sound
                 menuPos = 0;
                 stateOfGame = MONSTER;
             }
-            if(taken == 'D') {
+            if(taken == 'D') { //Dragon
+
                 currentMonster = monster(100, "DRAGON BOSS");
-                std::cout << '\a';
-                stateOfGame = MONSTER_FIGHT;
+                std::cout << '\a'; //Alert sound
+                stateOfGame = MONSTER_FIGHT; //Dette springer det over hvor du kan hoppe ud af kampen med fjenden. Det betyder at man ikke kan slippe væk fra dragen!
+
+            }
+            if(taken == '#') { //Cave
+
+                stateOfGame = CAVE_INTRO;
+                std::cout << '\a'; //Alert sound
             }
             break;
         }
@@ -254,6 +263,14 @@ void drawMonsterFight( character& player,  monster& monsterKiller ) {
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
+
+void drawCaveIntro( character& player ) {
+
+}
+
+void drawCaveFight( character& player, monster& monsterKiller ) {
+
 }
 
 void drawGameOver() {
@@ -807,6 +824,13 @@ int main()
         case MONSTER_FIGHT:
             menuOptions = 2; //Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
             drawMonsterFight(player, currentMonster);
+            break;
+        case CAVE_INTRO:
+            menuOptions = 2;
+            drawCaveIntro(player);
+            break;
+        case CAVE:
+            drawCaveFight(player, currentMonster);
             break;
         case GAME_OVER:
             drawGameOver();
