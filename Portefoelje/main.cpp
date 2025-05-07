@@ -1,3 +1,14 @@
+////////////////////////////////////////////////////////////////////////
+///
+///     This game is created as the assignment submission
+///     for the course exam in Software development, spring 2025
+///     on SDU Odense
+///
+///     Made by Frederik Vester
+///
+////////////////////////////////////////////////////////////////////////
+
+
 #include <iostream>
 #include <iomanip>
 #include <cstdlib> // For system()
@@ -55,6 +66,7 @@ sqlDB DB("saves.db");
 static int divideCoins = 40;
 static int divideMonsters = 10;
 static int divideDragons = 1;
+static int divideInToCave = 1;
 
 
 std::string generateLine(character &player) {
@@ -68,6 +80,8 @@ std::string generateLine(character &player) {
             output += "M";
         } else if(randomGenerate >= (DIVIDER - divideCoins - divideMonsters - divideDragons) && randomGenerate < (DIVIDER - divideCoins - divideMonsters)) { //Hvis større end eller lig med 939 og mindre end 940
             output += "D";
+        } else if(randomGenerate >= (DIVIDER - divideCoins - divideMonsters - divideDragons - divideInToCave) && randomGenerate < (DIVIDER - divideCoins - divideMonsters - divideDragons)) { //Hvis større end eller lig med 938 og mindre end 939
+            output += "#";
         } else {
             output += " ";
         }
@@ -77,6 +91,8 @@ std::string generateLine(character &player) {
 
 
 void drawGame(character &player, int &pos) {
+
+
     std::cout << "[ XP: " << std::setw(6) << std::right << player.getXP() << " Lvl: " << std::setw(2) << player.getLvl() << std::right << " NAME: " << std::setw(13) << std::right  << player.getName() << " ]" << std::endl;
     std::cout << "[ pID: " << std::setw(5) << player.getId() << " pHP: " << std::setw(5) << player.getHp() << " pDMG: " << std::setw(5) << player.getStrength() << std::setw(WIDTH-33) << " ]" /*<< playerPos*/ << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
@@ -194,7 +210,6 @@ void drawMonsterFight( character& player,  monster& monsterKiller ) {
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH-1) << playerStats << "]" << std::endl;
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
-    //std::cout << "[ " << std::setw(WIDTH-1) << "Press R to flee for you life" << "]" << std::endl;
 
     std::uniform_int_distribution<int> distribution(25,100);
     double hitSuccess = (static_cast<double>(distribution(generator))/100);
@@ -477,7 +492,7 @@ void keyboardCTRLFunc( character &player ) {
                     } else {
                         std::cout << "GAME NOT SAVED - CHECK SQL" << std::endl;
                     }
-                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     //std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
                     //goto exitLoop_1;
                     break;
@@ -799,9 +814,6 @@ int main()
         case EXIT:
             goto leaveGame;
             break;
-        /*case GAME_OVER:
-            goto leaveGame;
-            break;*/
         default:
             std::cout << "[DEBUG]: ERROR.. NO MENU !" << std::endl;
         }
