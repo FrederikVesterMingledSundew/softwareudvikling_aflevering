@@ -2,15 +2,6 @@
 #include <iostream>
 #include <cstring>
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
-    int i;
-    for(i = 0; i<argc; i++) {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
-}
-
 sqlDB::sqlDB(const std::string& dbFileName) : mFile(dbFileName) {
     rc = sqlite3_open(mFile.c_str(), &mSqlDB);
     if (rc) {
@@ -23,35 +14,40 @@ sqlDB::sqlDB(const std::string& dbFileName) : mFile(dbFileName) {
 }
 
 bool sqlDB::checkUserTable(const int heroNameLength) {
-    char *zErrMsg = 0;
+
     if(!this->isOpen()) {
         std::cout << "[ERROR]: Database is not open." << std::endl;
         return false;
     }
-    std::string sql = "CREATE TABLE heroes(\
+    const char* sql = "CREATE TABLE heroes(\
         ID INTEGER PRIMARY KEY AUTOINCREMENT,\
         HERO TEXT NOT NULL,\
         XP INTEGER NOT NULL,\
         LEVEL INTEGER NOT NULL,\
         HP INTEGER NOT NULL,\
         STRENGTH INTEGER NOT NULL );";
-    /* Execute SQL statement */
-    this->rc = sqlite3_exec(mSqlDB, sql.c_str(), callback, 0, &zErrMsg);
 
-    if( this->rc != SQLITE_OK ){
-        //Table already exists
-        if(!strcmp(zErrMsg, "table heroes already exists")) {
+    sqlite3_stmt* stmt;
+
+    if (sqlite3_prepare_v2(mSqlDB, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        if(!strcmp(sqlite3_errmsg(mSqlDB), "table heroes already exists")) {
+            sqlite3_finalize(stmt);
             return true;
-        } else {
-            //Table error
-            fprintf(stderr, "SQL error: %s(%i)\n", zErrMsg, this->rc);
-            sqlite3_free(zErrMsg);
-            return false;
         }
-    } else {
-        return true; //Table created successfully
+        std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
+        return false;
     }
-    return 0;
+
+    // Execute the statement
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "[ERROR]: Failed to execute statement: \n" << sqlite3_errmsg(mSqlDB) << std::endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    // Finalize the statement to free resources
+    sqlite3_finalize(stmt);
+    return true;
 
 }
 

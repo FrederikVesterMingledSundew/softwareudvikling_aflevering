@@ -67,6 +67,13 @@ const int monster::getWinXP() const {
     return winXP;
 }
 
+const bool monster::isDragon() const {
+    return mIsDragon;
+}
+void monster::setDragon(bool isDragon) {
+    mIsDragon = isDragon;
+}
+
 /*
 
 public:
