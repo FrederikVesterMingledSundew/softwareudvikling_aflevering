@@ -23,9 +23,13 @@ public:
     void hit(const int &damage);
     const int getId() const;
     const std::string getName() const;
+    const int getPlayerPos() const;
+    void movePlayer(int pos);
+    void setPlayerPos(int pos);
+
 
 private:
-    int mXP = 0, mLvl = START_LEVEL, mHp = START_HP, mStrength = START_STRENGTH, mID = -1;
+    int mXP = 0, mLvl = START_LEVEL, mHp = START_HP, mStrength = START_STRENGTH, mID = -1, mPos = 0;
     std::string mName {};
 };
 

@@ -55,3 +55,13 @@ const int character::getId() const {
 const std::string character::getName() const {
     return mName;
 }
+
+const int character::getPlayerPos() const {
+    return mPos;
+}
+void character::movePlayer(int pos) {
+    mPos += pos;
+}
+void character::setPlayerPos(int pos) {
+    mPos = pos;
+}
