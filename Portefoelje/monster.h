@@ -30,10 +30,13 @@ public:
     void hit(const int &damage);
     const std::string getName() const;
     const int getWinXP() const;
+    const bool isDragon() const;
+    void setDragon(bool isDragon);
 
 private:
     int mLevel = 1, mHp = 10, mDamage = 2, winXP = 1;
     std::string mName = "";
+    bool mIsDragon = false;
 };
 
 #endif // MONSTER_H
