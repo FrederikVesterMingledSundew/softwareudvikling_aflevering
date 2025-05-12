@@ -128,6 +128,7 @@ void drawGame(character &player, int &pos) {
                 currentMonster = monster(100, "DRAGON BOSS");
                 std::cout << '\a';
                 stateOfGame = MONSTER_FIGHT;
+                menuPos = 0;
             }
             break;
         }
