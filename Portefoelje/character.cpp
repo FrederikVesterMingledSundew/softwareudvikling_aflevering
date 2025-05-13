@@ -4,7 +4,7 @@ character::character() {};
 
 character::character(std::string name, int ID): mName(name), mID(ID) {}
 
-character::character(std::string name, int ID, int xp, int lvl, int Hp, int Strength):mName(name), mID(ID), mXP(xp), mLvl(lvl), mHp(Hp), mStrength(Strength) {}
+character::character(std::string name, int ID, int xp, int lvl, int coins, int Hp, int Strength):mName(name), mID(ID), mXP(xp), mLvl(lvl), mCoins(coins), mHp(Hp), mStrength(Strength) {}
 
 const int character::getXP() const {
     return mXP;
@@ -64,4 +64,16 @@ void character::movePlayer(int pos) {
 }
 void character::setPlayerPos(int pos) {
     mPos = pos;
+}
+
+const int character::getCoins() const {
+    return mCoins;
+}
+
+void character::addCoins(int coinsToAdd) {
+    mCoins += coinsToAdd;
+}
+
+void character::setCoins(int coinsToAdd) {
+    mCoins = coinsToAdd;
 }

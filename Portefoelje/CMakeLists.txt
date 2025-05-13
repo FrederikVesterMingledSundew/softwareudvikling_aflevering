@@ -12,7 +12,8 @@ add_executable(Portefoelje main.cpp
     character.h character.cpp
     monster.h monster.cpp
     SQLdatabase.h SQLdatabase.cpp
-    world.h world.cpp)
+    world.h world.cpp
+    caves.h caves.cpp)
 
 if (SQLite3_FOUND)
 include_directories(${SQLite3_INCLUDE_DIRS})

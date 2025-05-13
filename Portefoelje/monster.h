@@ -3,6 +3,9 @@
 
 #include <string>
 
+#define MIN_MONSTER_LEVEL 0
+#define MAX_MONSTER_LEVEL 100
+
 static std::string monsterNames[50] = {
     "Abaddon", "Ahuizotl", "Adlet", "Afanc", "Basilisk",
     "Chimera", "Kraken", "Nuckelavee", "Selkie", "Wendigo",

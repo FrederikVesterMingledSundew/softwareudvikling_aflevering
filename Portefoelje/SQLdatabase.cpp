@@ -24,6 +24,7 @@ bool sqlDB::checkUserTable(const int heroNameLength) {
         HERO TEXT NOT NULL,\
         XP INTEGER NOT NULL,\
         LEVEL INTEGER NOT NULL,\
+        COINS INTEGER NOT NULL,\
         HP INTEGER NOT NULL,\
         STRENGTH INTEGER NOT NULL );";
 
@@ -58,7 +59,7 @@ int sqlDB::addNewHero(std::string &name) {
     }
 
     sqlite3_stmt* stmt;
-    const char* insertSQL = "INSERT INTO heroes (HERO, XP, LEVEL, HP, STRENGTH) VALUES (?, 0, 0, ?, ?);";
+    const char* insertSQL = "INSERT INTO heroes (HERO, XP, LEVEL, COINS, HP, STRENGTH) VALUES (?, 0, 1, 0, ?, ?);";
 
     if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
@@ -82,7 +83,7 @@ int sqlDB::addNewHero(std::string &name) {
 
     // Finalize the statement to free resources
     sqlite3_finalize(stmt);
-    return true;
+    return lastInsertID;
 }
 
 bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
@@ -92,7 +93,7 @@ bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
     }
 
     sqlite3_stmt* stmt;
-    const char* selectSQL = "SELECT `ID`, `HERO`, `XP`, `LEVEL`, `HP`, `STRENGTH` FROM heroes";
+    const char* selectSQL = "SELECT `ID`, `HERO`, `XP`, `LEVEL`, `COINS`, `HP`, `STRENGTH` FROM heroes";
 
     // Prepare the SQL statement
     if (sqlite3_prepare_v2(mSqlDB, selectSQL, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -110,9 +111,10 @@ bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
         std::string name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)); // HERO
         int xp = sqlite3_column_int(stmt, 2);                                    // XP
         int level = sqlite3_column_int(stmt, 3);                                 // LEVEL
+        int coins = sqlite3_column_int(stmt, 3);                                 // COINS
         int hp = sqlite3_column_int(stmt, 4);                                    // HP
         int strength = sqlite3_column_int(stmt, 5);                              // STRENGTH
-        character hero(name, ID, xp, level, hp, strength);
+        character hero(name, ID, xp, level, coins, hp, strength);
 
         // Add the hero to the buffer
         buffer.push_back(hero);
@@ -132,7 +134,7 @@ bool sqlDB::saveHero(const character &hero) {
     }
 
     sqlite3_stmt* stmt;
-    const char* insertSQL = "UPDATE heroes SET `XP` = ?, `LEVEL` = ?, `HP` = ?, `STRENGTH` = ? WHERE `ID` = ?;";
+    const char* insertSQL = "UPDATE heroes SET `XP` = ?, `LEVEL` = ?, `COINS` = ?, `HP` = ?, `STRENGTH` = ? WHERE `ID` = ?;";
 
     if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
@@ -141,6 +143,7 @@ bool sqlDB::saveHero(const character &hero) {
 
     sqlite3_bind_int(stmt, 1, hero.getXP());
     sqlite3_bind_int(stmt, 2, hero.getLvl());
+    sqlite3_bind_int(stmt, 2, hero.getCoins());
     sqlite3_bind_int(stmt, 3, hero.getHp());
     sqlite3_bind_int(stmt, 4, hero.getStrength());
     sqlite3_bind_int(stmt, 5, hero.getId());

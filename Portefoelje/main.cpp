@@ -24,6 +24,7 @@
 #include "SQLdatabase.h"
 #include "keyboard.h"
 #include "world.h"
+#include "caves.h"
 
 // Game settings
 #define WIDTH 40
@@ -33,8 +34,6 @@
 #define MAX_NAME_LENGTH 10
 
 #define DRAGON_NAME "DRAGON BOSS"
-#define MIN_MONSTER_LEVEL 0
-#define MAX_MONSTER_LEVEL 100
 #define XP_GAIN_FROM_COIN_MULTIPLIED_BY_LEVEL 100
 
 //Keys
@@ -49,14 +48,14 @@
 
 #define TerminalClear() std::cout << "\x1B[2J\x1B[H" //std::system("clear"); før men den tager meget computerkraft
 
-enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, GAME_OVER, WON, EXIT};
+enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, CAVE_INTRO, CAVE, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
 //Variabler
 static bool enterPressed;
 static int menuPos = 3; //standard
 static int menuOptions = 4; //Max
-static monster currentMonster = monster();
+
 static std::string tmpName = {};
 //static std::string windowArr[HEIGHT] = {};
 std::vector<character> loadingPlayers {};
@@ -75,10 +74,11 @@ World verden(WIDTH, HEIGHT);
 //SQL
 sqlDB DB("saves.db");
 
-void drawGame(character &player) {
+void drawGame(character &player, monster &pMonster, cave &currentCave) {
 
     std::cout << "[ XP: " << std::setw(6) << std::right << player.getXP() << " Lvl: " << std::setw(2) << player.getLvl() << std::right << " NAME: " << std::setw(12) << std::right << player.getName() << " ]" << std::endl;
     std::cout << "[ pID: " << std::setw(5) << player.getId() << " pHP: " << std::setw(5) << player.getHp() << " pDMG: " << std::setw(5) << player.getStrength() << std::setw(WIDTH-33) << " ]" /*<< player.getPlayerPos() */<< std::endl;
+    std::cout << "[ Coins: " << std::setw(5) << player.getCoins() << std::setw(WIDTH - 12) << " ]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
 
     for(int y = 0; y <= HEIGHT; y++) {
@@ -98,21 +98,28 @@ void drawGame(character &player) {
                 if(player.getStrength() < (2+player.getLvl())) {
                     player.gainStrength();
                 }
+                player.addCoins(1);
                 std::cout << '\a';
             }
             if(taken == 'M') {
                 std::uniform_int_distribution<int> distribution(MIN_MONSTER_LEVEL, MAX_MONSTER_LEVEL);
                 int randomLevel = distribution(generator);
-                currentMonster = monster(randomLevel);
+                pMonster = monster(randomLevel);
                 std::cout << '\a';
                 menuPos = 0;
                 stateOfGame = MONSTER;
             }
             if(taken == 'D') {
-                currentMonster = monster(MAX_MONSTER_LEVEL, DRAGON_NAME);
-                currentMonster.setDragon(true);
+                pMonster = monster(MAX_MONSTER_LEVEL, DRAGON_NAME);
+                pMonster.setDragon(true);
                 std::cout << '\a';
                 stateOfGame = MONSTER_FIGHT;
+                menuPos = 0;
+            }
+            if(taken == '#') { //Cave
+                stateOfGame = CAVE_INTRO;
+                currentCave = cave(player.getLvl());
+                std::cout << '\a'; //Alert sound
                 menuPos = 0;
             }
             break;
@@ -145,6 +152,164 @@ void drawGame(character &player) {
         std::cout << "[----------------------------------------]" << std::endl;
     }
 
+}
+
+void drawCaveConflict( character& player,  cave& caveCnf ) {
+
+
+    std::string playerStats = "You have " + std::to_string(player.getHp())  + " HP and " + std::to_string(player.getStrength()) + " damage!";
+
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-6) << "You have entered a cave level: " << std::setw(4) << caveCnf.getCaveLevel() << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "If you clear the cave, you can" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "earn gold - so the nearby villagers" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "can use it as a mine" << " ]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "The cave contains:" << " ]" << std::endl;
+    for(monster newMonster:caveCnf.getMonsters()) {
+        std::string monsterNameString = newMonster.getName() + " - " + std::to_string(newMonster.getHp()) + " HP + " + std::to_string(newMonster.getDamage()) + " dmg!";
+        std::cout << "[ " << std::setw(WIDTH-2) << monsterNameString << " ]" << std::endl;
+    }
+
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << playerStats << " ]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-1) << "Do you dare to fight?" << "]" << std::endl;
+
+    switch(menuPos) {
+    case 0:
+        std::cout << "[ " << std::setw(WIDTH-17) << std::right << "->FIGHT<-" << std::setw(15) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-20) << std::right << "FLEE" << std::setw(18) << "" << " ]" << std::left << std::endl;
+        break;
+    case 1:
+        std::cout << "[ " << std::setw(WIDTH-19) << std::right << "FIGHT" << std::setw(17) << "" << " ]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-18) << std::right << "->FLEE<-" << std::setw(16) << "" << " ]" << std::left << std::endl;
+        break;
+    default:
+        std::cout << "[ " << std::setw(WIDTH-1) << "Out of bounds for some reason" << " ]" << std::endl;
+    }
+
+    if(enterPressed) {
+        enterPressed = false;
+
+        if(menuPos == 0) {
+            stateOfGame = CAVE;
+            menuPos = 0;
+        } else {
+            stateOfGame = GAME;
+        }
+    }
+
+    if(timeOut > std::chrono::steady_clock::now()) {
+        std::cout << "[----------------------------------------]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-2) << msgField << " ]" << std::endl;
+        std::cout << "[----------------------------------------]" << std::endl;
+    }
+}
+
+void drawCaveFight( character& player,  cave& caveCnf ) {
+
+
+
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "FIGHT!!" << " ]" << std::endl;
+
+    int i = 0;
+    for(monster &newMonster:caveCnf.getMonsters()) {
+        ++i;
+        if(newMonster.getHp() > 0) {
+            std::string monsterCountStr = std::to_string(i) + "/" + std::to_string(caveCnf.getMonsters().size()) ;
+            std::cout << "[ " << std::setw(WIDTH-2) << std::right << monsterCountStr << " ]" << std::left << std::endl;
+
+
+            std::string monsterNameString = "You have met " + newMonster.getName() + "(" + std::to_string(newMonster.getLvl()) + ")";
+            std::string monsterStats = "It has " + std::to_string(newMonster.getHp())  + " HP and " + std::to_string(newMonster.getDamage()) + " damage!";
+            std::string playerStats = "You have " + std::to_string(player.getHp())  + " HP and " + std::to_string(player.getStrength()) + " damage!";
+
+
+            std::cout << "[ " << std::setw(WIDTH-2) << monsterNameString << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-2) << monsterStats << " ]" << std::endl;
+            std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-2) << playerStats << " ]" << std::endl;
+            std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+
+            std::uniform_int_distribution<int> distribution(25,100);
+            double hitSuccess = (static_cast<double>(distribution(generator))/100);
+
+            std::string successString = std::to_string(static_cast<int>(hitSuccess*100)) + "%";
+            std::string damageStr;
+
+            std::cout << "[ " << std::setw(WIDTH/2-1) << "Hitsuccess: " << std::setw(WIDTH/2-1) << successString << " ]" << std::endl;
+
+
+            switch(menuPos) {
+            case 0:
+                damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+" damage!!";
+                std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+                newMonster.hit(player.getStrength() * hitSuccess);
+                menuPos = 1;
+                break;
+            case 1:
+                damageStr = "Opponents turn: " + std::to_string(newMonster.getDamage() * hitSuccess)+" damage!!";
+                std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+                player.hit(newMonster.getDamage() * hitSuccess);
+                menuPos = 0;
+                break;
+            default:
+                std::cout << "[ " << std::setw(WIDTH-1) << "Out of bounds for some reason" << " ]" << std::endl;
+            }
+
+            if(player.getHp() <= 0) {
+                if(!DB.killHero(player)) { //Hvis SQL fejler. Så man kan se fejlen
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+                }
+                player = character();
+
+                stateOfGame = GAME_OVER;
+                return;
+            }
+
+            break;
+        }
+
+    }
+
+
+
+
+    if( caveCnf.getMonsters().at(
+                caveCnf.getMonsters().size()-1
+            ).getHp() <= 0 ) { //All monsters are dead. Har bare splittet den op så det er mere læsbart
+
+        int xp = player.getXP();
+        int winGold = caveCnf.returnGold();
+
+        for( monster &newMonster:caveCnf.getMonsters() ) {
+            xp += newMonster.getWinXP();
+        }
+
+        player.setXP(xp);
+
+        stateOfGame = GAME;
+
+    }
+
+
+
+
+    if(timeOut > std::chrono::steady_clock::now()) {
+        std::cout << "[----------------------------------------]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-2) << msgField << " ]" << std::endl;
+        std::cout << "[----------------------------------------]" << std::endl;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(750)); //Så det ikke går alt for hurtigt
 }
 
 void drawMonsterConflict( character& player,  monster& monsterKiller ) {
@@ -514,7 +679,7 @@ void keyboardCTRLFunc( character &player ) {
 
                     if( player.getId() != -1 ) {
                         stateOfGame = GAME;
-                        bogstav = 0; //DEBUG
+                        //bogstav = 0; //DEBUG
                     }
                     break;
                 case KEY_ENTER:
@@ -556,6 +721,27 @@ void keyboardCTRLFunc( character &player ) {
                 }
             }
             else if(stateOfGame == MONSTER) {
+                switch(bogstav) {
+                case KEY_UP:
+                    if(menuPos > 0) { --menuPos; }
+                    break;
+                case KEY_DOWN:
+                    if(menuPos < (menuOptions-1)) { ++menuPos; }
+                    break;
+                case KEY_ESC:
+
+                    if( player.getId() != -1 ) {
+                        stateOfGame = GAME;
+                        bogstav = 0; //DEBUG
+                    }
+                    break;
+                case KEY_ENTER:
+                    enterPressed = true;
+                    break;
+
+                }
+            }
+            else if(stateOfGame == CAVE_INTRO) {
                 switch(bogstav) {
                 case KEY_UP:
                     if(menuPos > 0) { --menuPos; }
@@ -811,6 +997,9 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     character player;
+    monster currentMonster;
+    cave currentCave;
+
 
     std::thread keyboardThread(keyboardCTRLFunc, std::ref(player));
 
@@ -837,15 +1026,23 @@ int main()
             drawAbout();
             break;
         case GAME:
-            drawGame(player);
+            drawGame(player, currentMonster, currentCave);
             break;
         case MONSTER:
-            menuOptions = 2; //Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
+            menuOptions = 2;
             drawMonsterConflict(player, currentMonster);
             break;
         case MONSTER_FIGHT:
             menuOptions = 2; //Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
             drawMonsterFight(player, currentMonster);
+            break;
+        case CAVE_INTRO:
+            menuOptions = 2;
+            drawCaveConflict(player, currentCave);
+            break;
+        case CAVE:
+            menuOptions = 2;//Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
+            drawCaveFight(player, currentCave);
             break;
         case GAME_OVER:
             drawGameOver();
