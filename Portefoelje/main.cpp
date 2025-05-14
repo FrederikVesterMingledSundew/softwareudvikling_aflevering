@@ -25,15 +25,16 @@
 #include "keyboard.h"
 #include "world.h"
 #include "caves.h"
+#include "monsterfactory.h"
+#include "cavefactory.h"
 
 // Game settings
 #define WIDTH 40
-#define HEIGHT 19
+#define HEIGHT 18
 #define PADDLE_SIZE 3
 #define FRAME_RATE 3 //Fjerner også fejlmeddelelser hurtigere
 #define MAX_NAME_LENGTH 10
 
-#define DRAGON_NAME "DRAGON BOSS"
 #define XP_GAIN_FROM_COIN_MULTIPLIED_BY_LEVEL 100
 
 //Keys
@@ -48,23 +49,26 @@
 
 #define TerminalClear() std::cout << "\x1B[2J\x1B[H" //std::system("clear"); før men den tager meget computerkraft
 
-enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, CAVE_INTRO, CAVE, GAME_OVER, WON, EXIT};
+enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, SHOP, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, CAVE_INTRO, CAVE, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
 //Variabler
-static bool enterPressed;
-static int menuPos = 3; //standard
-static int menuOptions = 4; //Max
+bool enterPressed;
+int menuPos = 3; //standard
+int menuOptions = 4; //Max
 
-static std::string tmpName = {};
-//static std::string windowArr[HEIGHT] = {};
+std::string tmpName = {};
 std::vector<character> loadingPlayers {};
 
-static std::string msgField {};
-static std::chrono::time_point<std::chrono::steady_clock> timeOut;
+std::string msgField {};
+std::chrono::time_point<std::chrono::steady_clock> timeOut;
 
+//Keyboard
 keyboard keyboardCTRL;
-static bool killKeyboardThread = false;
+bool killKeyboardThread = false;
+
+//Caves
+CaveFactory CFactory;
 
 std::default_random_engine generator;
 
@@ -102,23 +106,20 @@ void drawGame(character &player, monster &pMonster, cave &currentCave) {
                 std::cout << '\a';
             }
             if(taken == 'M') {
-                std::uniform_int_distribution<int> distribution(MIN_MONSTER_LEVEL, MAX_MONSTER_LEVEL);
-                int randomLevel = distribution(generator);
-                pMonster = monster(randomLevel);
+                pMonster = MFactory.createRndMonster();
                 std::cout << '\a';
                 menuPos = 0;
                 stateOfGame = MONSTER;
             }
             if(taken == 'D') {
-                pMonster = monster(MAX_MONSTER_LEVEL, DRAGON_NAME);
-                pMonster.setDragon(true);
+                pMonster = MFactory.createDragon();
                 std::cout << '\a';
                 stateOfGame = MONSTER_FIGHT;
                 menuPos = 0;
             }
             if(taken == '#') { //Cave
                 stateOfGame = CAVE_INTRO;
-                currentCave = cave(player.getLvl());
+                currentCave = CFactory.createCave(player.getLvl());
                 std::cout << '\a'; //Alert sound
                 menuPos = 0;
             }
@@ -141,8 +142,6 @@ void drawGame(character &player, monster &pMonster, cave &currentCave) {
         default:
             std::cout << "[" << verden.getLine(y) << "]" << std::endl;
         }
-
-
     }
 
 
@@ -163,10 +162,17 @@ void drawCaveConflict( character& player,  cave& caveCnf ) {
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+
+    std::string caveString = "This is "+ caveCnf.getCaveModifierName() + " Cave";
+    std::cout << "[ " << std::setw(WIDTH-2) << caveString << " ]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH-6) << "You have entered a cave level: " << std::setw(4) << caveCnf.getCaveLevel() << " ]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH-2) << "If you clear the cave, you can" << " ]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH-2) << "earn gold - so the nearby villagers" << " ]" << std::endl;
-    std::cout << "[ " << std::setw(WIDTH-2) << "can use it as a mine" << " ]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH-2) << "can use it as a mine." << " ]" << std::endl;
+
+    std::string mineMsg = "You can earn: "+std::to_string(caveCnf.returnGold());
+
+    std::cout << "[ " << std::setw(WIDTH-2) << mineMsg << " ]" << std::endl;
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH-2) << "The cave contains:" << " ]" << std::endl;
     for(monster newMonster:caveCnf.getMonsters()) {
@@ -295,6 +301,7 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
         }
 
         player.setXP(xp);
+        player.addCoins(winGold);
 
         stateOfGame = GAME;
 
@@ -467,8 +474,14 @@ void drawGameWon() {
 }
 
 
+void drawGameShop( character& player ) {
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "GAMESHOP" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
 
-void drawMenu() {
+}
+
+void drawMenu( character& player ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
@@ -481,59 +494,141 @@ void drawMenu() {
     std::cout << "[ " << std::setw(WIDTH-2) << "AUTOSAVE ON ESC" << " ]" << std::endl;
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
 
-    switch(menuPos) {
-    case 3:
-        std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
-        break;
-    case 2:
-        std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
-        break;
-    case 1:
-        std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
-        break;
-    case 0:
-        std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-        std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-        break;
-    default:
-        std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: Menu: " << menuPos << "" << " ]" << std::endl;
-        ;
-    }
+    if(player.getId() != -1) { //Player is loaded
 
-    if(enterPressed) {
-        enterPressed = false;
         switch(menuPos) {
+        case 4:
+            std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
         case 3:
-            DB.searchForHeroes(loadingPlayers);
-            stateOfGame = LOAD_PLAYER;
-            menuPos = 0;
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
         case 2:
-            tmpName =""; //Her kører den kun 1 gang
-            stateOfGame = CREATE_PLAYER;
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
         case 1:
-            stateOfGame = ABOUT;
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->SHOP<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
         case 0:
-            stateOfGame = EXIT;
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
             break;
         default:
-            std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: EnterMenu: " << menuPos << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: Menu: " << menuPos << "" << " ]" << std::endl;
             ;
         }
+
+        if(enterPressed) {
+            enterPressed = false;
+            switch(menuPos) {
+            case 4:
+                DB.searchForHeroes(loadingPlayers);
+                stateOfGame = LOAD_PLAYER;
+                menuPos = 0;
+                break;
+            case 3:
+                tmpName =""; //Her kører den kun 1 gang
+                stateOfGame = CREATE_PLAYER;
+                break;
+            case 2:
+                stateOfGame = ABOUT;
+                break;
+            case 1:
+
+                if(DB.loadWeaponShop( player )) {
+                    stateOfGame = SHOP;
+                }
+                else {
+                    timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+                    msgField = "SQL Failed";
+                }
+                break;
+            case 0:
+                stateOfGame = EXIT;
+                break;
+            default:
+                std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: EnterMenu: " << menuPos << "" << " ]" << std::endl;
+                ;
+            }
+        }
+
+    } else { //No player is loaded
+
+        switch(menuPos) {
+        case 3:
+            std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 2:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 1:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 0:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            break;
+        default:
+            std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: Menu: " << menuPos << "" << " ]" << std::endl;
+            ;
+        }
+
+        if(enterPressed) {
+            enterPressed = false;
+            switch(menuPos) {
+            case 3:
+                DB.searchForHeroes(loadingPlayers);
+                stateOfGame = LOAD_PLAYER;
+                menuPos = 0;
+                break;
+            case 2:
+                tmpName =""; //Her kører den kun 1 gang
+                stateOfGame = CREATE_PLAYER;
+                break;
+            case 1:
+                stateOfGame = ABOUT;
+                break;
+            case 0:
+                stateOfGame = EXIT;
+                break;
+            default:
+                std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: EnterMenu: " << menuPos << "" << " ]" << std::endl;
+                ;
+            }
+        }
+
     }
+
 
 
     if(timeOut > std::chrono::steady_clock::now()) {
@@ -677,10 +772,28 @@ void keyboardCTRLFunc( character &player ) {
                     break;
                 case KEY_ESC:
 
-                    if( player.getId() != -1 ) {
+                    if( player.getId() != -1 ) { //If player is loaded
                         stateOfGame = GAME;
                         //bogstav = 0; //DEBUG
                     }
+                    break;
+                case KEY_ENTER:
+                    enterPressed = true;
+                    break;
+
+                }
+
+            }
+            if(stateOfGame == SHOP) {
+                switch(bogstav) {
+                case KEY_UP:
+                    if(menuPos < (menuOptions-1)) { ++menuPos; }
+                    break;
+                case KEY_DOWN:
+                    if(menuPos > 0) { --menuPos; }
+                    break;
+                case KEY_ESC:
+                    stateOfGame = STARTMENU;
                     break;
                 case KEY_ENTER:
                     enterPressed = true;
@@ -704,15 +817,13 @@ void keyboardCTRLFunc( character &player ) {
                     if(DB.saveHero(player)) {
                         timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
                         msgField = "GAME SAVED";
-                        //std::cout << "GAME SAVED" << std::endl;
+
                     } else {
                         timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
                         msgField = "GAME NOT SAVED - CHECK SQL";
-                        //std::cout << "GAME NOT SAVED - CHECK SQL" << std::endl;
+
                     }
-                    //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                    //std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
-                    //goto exitLoop_1;
+
                     break;
 
                 default:
@@ -951,8 +1062,18 @@ void keyboardCTRLFunc( character &player ) {
                 case KEY_QUIT:
                 case KEY_ESC:
                     stateOfGame = STARTMENU;
-                    std::cout << "[DEBUG]: KEY_ESC pressed" << std::endl;
-                    //goto exitLoop_1;
+                    menuPos = 3; //Top af menu
+                    stateOfGame = STARTMENU;
+                    if(DB.saveHero(player)) {
+                        timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+                        msgField = "GAME SAVED";
+
+                    } else {
+                        timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+                        msgField = "GAME NOT SAVED - CHECK SQL";
+
+                    }
+
                     break;
                 case KEY_ENTER:
                     stateOfGame = GAME;
@@ -1005,44 +1126,52 @@ int main()
 
     do
     {
-        TerminalClear(); //cls for windows
-        if(player.getXP() >= (player.getLvl()*1000)) {
+        TerminalClear(); //clear skærmen
+
+        if(player.getXP() >= (player.getLvl()*1000)) { //Lvl op hvis du kan
             player.lvlUp();
         }
 
         switch(stateOfGame) {
         case STARTMENU:
-            menuOptions = 4;
-            drawMenu();
+            if(player.getId() != -1) { //Is player loaded
+                menuOptions = 5;
+            } else {
+                menuOptions = 4;
+            }
+            drawMenu( player );
             break;
         case LOAD_PLAYER:
             menuOptions = loadingPlayers.size();
-            drawLoadPlayerMenu(player);
+            drawLoadPlayerMenu( player );
             break;
         case CREATE_PLAYER:
-            drawPlayerCreationMenu(player);
+            drawPlayerCreationMenu( player );
             break;
         case ABOUT:
             drawAbout();
             break;
+        case SHOP:
+            drawGameShop( player );
+            break;
         case GAME:
-            drawGame(player, currentMonster, currentCave);
+            drawGame( player, currentMonster, currentCave );
             break;
         case MONSTER:
             menuOptions = 2;
-            drawMonsterConflict(player, currentMonster);
+            drawMonsterConflict( player, currentMonster );
             break;
         case MONSTER_FIGHT:
             menuOptions = 2; //Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
-            drawMonsterFight(player, currentMonster);
+            drawMonsterFight( player, currentMonster );
             break;
         case CAVE_INTRO:
             menuOptions = 2;
-            drawCaveConflict(player, currentCave);
+            drawCaveConflict( player, currentCave );
             break;
         case CAVE:
             menuOptions = 2;//Jeg bruger den selvom det ikke er noget man selv kan styre i spillet
-            drawCaveFight(player, currentCave);
+            drawCaveFight( player, currentCave );
             break;
         case GAME_OVER:
             drawGameOver();
@@ -1054,7 +1183,7 @@ int main()
             goto leaveGame;
             break;
         default:
-            std::cout << "[DEBUG]: ERROR.. NO MENU !" << std::endl;
+            std::cout << "[ERROR]: NO MENU !" << std::endl;
         }
 
 

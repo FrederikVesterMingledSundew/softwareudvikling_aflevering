@@ -111,9 +111,9 @@ bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
         std::string name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)); // HERO
         int xp = sqlite3_column_int(stmt, 2);                                    // XP
         int level = sqlite3_column_int(stmt, 3);                                 // LEVEL
-        int coins = sqlite3_column_int(stmt, 3);                                 // COINS
-        int hp = sqlite3_column_int(stmt, 4);                                    // HP
-        int strength = sqlite3_column_int(stmt, 5);                              // STRENGTH
+        int coins = sqlite3_column_int(stmt, 4);                                 // COINS
+        int hp = sqlite3_column_int(stmt, 5);                                    // HP
+        int strength = sqlite3_column_int(stmt, 6);                              // STRENGTH
         character hero(name, ID, xp, level, coins, hp, strength);
 
         // Add the hero to the buffer
@@ -143,10 +143,10 @@ bool sqlDB::saveHero(const character &hero) {
 
     sqlite3_bind_int(stmt, 1, hero.getXP());
     sqlite3_bind_int(stmt, 2, hero.getLvl());
-    sqlite3_bind_int(stmt, 2, hero.getCoins());
-    sqlite3_bind_int(stmt, 3, hero.getHp());
-    sqlite3_bind_int(stmt, 4, hero.getStrength());
-    sqlite3_bind_int(stmt, 5, hero.getId());
+    sqlite3_bind_int(stmt, 3, hero.getCoins());
+    sqlite3_bind_int(stmt, 4, hero.getHp());
+    sqlite3_bind_int(stmt, 5, hero.getStrength());
+    sqlite3_bind_int(stmt, 6, hero.getId());
 
     // Execute the statement
     if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -186,5 +186,9 @@ bool sqlDB::killHero(const character &hero) {
 
     // Finalize the statement to free resources
     sqlite3_finalize(stmt);
+    return true;
+}
+
+bool sqlDB::loadWeaponShop(const character &hero) {
     return true;
 }

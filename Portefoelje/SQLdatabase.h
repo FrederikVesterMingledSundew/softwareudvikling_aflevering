@@ -28,6 +28,8 @@ public:
 
     bool killHero(const character &hero);
 
+    bool loadWeaponShop(const character &hero);
+
 private:
     std::string mFile;
     sqlite3* mSqlDB = nullptr;

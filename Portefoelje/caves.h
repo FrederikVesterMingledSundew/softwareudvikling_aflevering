@@ -1,17 +1,19 @@
 #ifndef CAVES_H
 #define CAVES_H
 
-#include <random>
 #include <vector>
-#include "monster.h"
+#include <string>
+#include "monsterfactory.h"
 
 #define MAX_MONSTERS_IN_CAVE 5
+
+extern MonsterFactory MFactory;
 
 class cave
 {
 public:
     cave();
-    cave(int lvl);
+    cave(std::vector<monster> caveMonsters);
     ~cave() {  }
 
     std::vector<monster> &getMonsters();
@@ -20,10 +22,14 @@ public:
 
     const int getCaveLevel() const;
 
+    const std::string getCaveModifierName() const;
+
+    friend class CaveFactory;
 
 private:
     std::vector<monster> mCaveMonsters;
     int mCaveLevel, mMonsterCount, mWinGold;
+    std::string mCaveModifierName;
 };
 
 #endif // CAVES_H
