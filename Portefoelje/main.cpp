@@ -1111,7 +1111,7 @@ int main()
         return 1; //Ikke nul, men alt andet da 0 er når den afslutter med success
     }
 
-    if(!DB.checkUserTable(MAX_NAME_LENGTH)) {
+    if(!DB.checkUserTable()) {
         std::cout << "[ERROR]: Table not okay" << std::endl;
         return 1; //Ikke nul, men alt andet da 0 er når den afslutter med success
     }

@@ -18,7 +18,7 @@ public:
 
     bool isOpen() const { return mSqlDB != nullptr; }
 
-    bool checkUserTable(const int heroNameLength);
+    bool checkUserTable();
 
     int addNewHero(std::string &name);
 

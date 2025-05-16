@@ -13,7 +13,7 @@ sqlDB::sqlDB(const std::string& dbFileName) : mFile(dbFileName) {
     }
 }
 
-bool sqlDB::checkUserTable(const int heroNameLength) {
+bool sqlDB::checkUserTable() {
 
     if(!this->isOpen()) {
         std::cout << "[ERROR]: Database is not open." << std::endl;
