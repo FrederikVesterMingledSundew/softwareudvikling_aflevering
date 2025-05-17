@@ -5,8 +5,6 @@
 #include <string>
 #include "monsterfactory.h"
 
-#define MAX_MONSTERS_IN_CAVE 5
-
 extern MonsterFactory MFactory;
 
 class cave

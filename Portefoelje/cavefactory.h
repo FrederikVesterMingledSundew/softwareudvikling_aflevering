@@ -5,6 +5,8 @@
 #include "monsterfactory.h"
 #include <string>
 
+#define MAX_MONSTERS_IN_CAVE 5
+
 static std::string caveModifierNames[10] = {
 
     "Grim",

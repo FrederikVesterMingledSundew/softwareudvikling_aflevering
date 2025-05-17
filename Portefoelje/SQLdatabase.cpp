@@ -19,37 +19,55 @@ bool sqlDB::checkUserTable() {
         std::cout << "[ERROR]: Database is not open." << std::endl;
         return false;
     }
-    const char* sql = "CREATE TABLE heroes(\
+    std::string sql = "CREATE TABLE IF NOT EXISTS heroes(\
         ID INTEGER PRIMARY KEY AUTOINCREMENT,\
         HERO TEXT NOT NULL,\
         XP INTEGER NOT NULL,\
         LEVEL INTEGER NOT NULL,\
         COINS INTEGER NOT NULL,\
         HP INTEGER NOT NULL,\
-        STRENGTH INTEGER NOT NULL );";
+        STRENGTH INTEGER NOT NULL\
+        );";
 
-    sqlite3_stmt* stmt;
+        sql += "\
+        CREATE TABLE IF NOT EXISTS heroStats (\
+        HERO_ID	INTEGER NOT NULL UNIQUE,\
+        NAME	TEXT NOT NULL,\
+        KILLS	INTEGER NOT NULL DEFAULT 0,\
+        XP_GAINED_FROM_KILLS	INTEGER NOT NULL DEFAULT 0,\
+        PRIMARY KEY(HERO_ID)\
+        );";
 
-    if (sqlite3_prepare_v2(mSqlDB, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        if(!strcmp(sqlite3_errmsg(mSqlDB), "table heroes already exists")) {
-            sqlite3_finalize(stmt);
-            return true;
-        }
-        std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
+        sql += "\
+        CREATE TABLE IF NOT EXISTS weaponsTypes (\
+        NAME	TEXT NOT NULL,\
+        ID	INTEGER NOT NULL DEFAULT 0,\
+        MODIFIER	INTEGER NOT NULL DEFAULT 0,\
+        DURABILITY	INTEGER NOT NULL DEFAULT 0,\
+        PRICE	INTEGER NOT NULL DEFAULT 1000,\
+        PRIMARY KEY(ID AUTOINCREMENT)\
+        );";
+
+        sql += "\
+        CREATE TABLE IF NOT EXISTS activeWeapons (\
+        OBJECT_ID	INTEGER NOT NULL,\
+        WEAPON_TYPE_ID	INTEGER NOT NULL,\
+        PLAYER_ID	INTEGER NOT NULL,\
+        HITS	INTEGER NOT NULL DEFAULT 0,\
+        PRIMARY KEY(OBJECT_ID AUTOINCREMENT)\
+        );";
+
+    char* errMsg = nullptr;
+    int rc = sqlite3_exec(mSqlDB, sql.c_str(), nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
         return false;
+
+    } else {
+        std::cout << "Tables created successfully" << std::endl;
+        return true;
     }
-
-    // Execute the statement
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        std::cerr << "[ERROR]: Failed to execute statement: \n" << sqlite3_errmsg(mSqlDB) << std::endl;
-        sqlite3_finalize(stmt);
-        return false;
-    }
-
-    // Finalize the statement to free resources
-    sqlite3_finalize(stmt);
-    return true;
-
 }
 
 int sqlDB::addNewHero(std::string &name) {
