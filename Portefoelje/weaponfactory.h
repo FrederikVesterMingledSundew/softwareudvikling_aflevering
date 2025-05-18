@@ -1,7 +1,11 @@
 #ifndef WEAPONFACTORY_H
 #define WEAPONFACTORY_H
 
+#include "cavefactory.h"
+#include "SQLdatabase.h"
 #include "weapon.h"
+
+#define WEAPON_LVL_TO_PRICE_CONST 100
 
 static std::string materialNames[] = { //12
     "Rubber",
@@ -58,7 +62,7 @@ class WeaponFactory
 public:
     WeaponFactory();
 
-    Weapon generateWeapon(int caveLvl);
+    Weapon generateWeapon(int caveLvl, sqlDB &DB);
 
     Weapon buyWeapon(int weaponID);
 };

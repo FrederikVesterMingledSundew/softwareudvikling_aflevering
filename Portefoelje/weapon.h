@@ -6,7 +6,16 @@
 class Weapon
 {
 public:
+    Weapon(Weapon &copy) {
+        this->mName = copy.mName;
+        this->mDurability = copy.mDurability;
+        this->mHits = copy.mHits;
+        this->mModifier = copy.mModifier;
+        this->mPrice = copy.mPrice;
+    }
+
     Weapon(std::string name, int durability, int hits, int modifier, int price) : mName(name), mDurability(durability), mHits(hits), mModifier(modifier), mPrice(price) {}; //Så lille en class. Laver ikke en cpp til
+
 
     void takeHit() {
         if(mHits < mDurability) {
@@ -14,20 +23,24 @@ public:
         }
     }
 
-    int getRemainingHits() {
+    const int getRemainingHits() const {
         return (mDurability - mHits);
     }
 
-    int getModifier() {
+    const int getModifier() const {
         return mModifier;
     }
 
-    int getPrice() {
+    const int getPrice() const {
         return mPrice;
     }
 
-    int getDurability() {
+    const int getDurability() const {
         return mDurability;
+    }
+
+    const std::string getName() const {
+        return mName;
     }
 
     friend class WeaponFactory;

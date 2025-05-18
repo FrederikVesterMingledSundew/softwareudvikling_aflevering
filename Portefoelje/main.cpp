@@ -27,6 +27,8 @@
 #include "caves.h"
 #include "monsterfactory.h"
 #include "cavefactory.h"
+#include "weapon.h"
+#include "weaponfactory.h"
 
 // Game settings
 #define WIDTH 40
@@ -70,6 +72,9 @@ bool killKeyboardThread = false;
 //Caves
 CaveFactory CFactory;
 
+//Weapons
+WeaponFactory WFactory;
+
 std::default_random_engine generator;
 
 //World
@@ -80,8 +85,16 @@ sqlDB DB("saves.db");
 
 void drawGame(character &player, monster &pMonster, cave &currentCave) {
 
+    std::string playerDamage;
+    if(player.getWeapon() != nullptr) {
+        playerDamage = std::to_string(player.getStrength())+"(+"+std::to_string(player.getWeapon()->getModifier())+")";
+    }
+    else {
+        playerDamage = std::to_string(player.getStrength());
+    }
+
     std::cout << "[ XP: " << std::setw(6) << std::right << player.getXP() << " Lvl: " << std::setw(2) << player.getLvl() << std::right << " NAME: " << std::setw(12) << std::right << player.getName() << " ]" << std::endl;
-    std::cout << "[ pID: " << std::setw(5) << player.getId() << " pHP: " << std::setw(5) << player.getHp() << " pDMG: " << std::setw(5) << player.getStrength() << std::setw(WIDTH-33) << " ]" /*<< player.getPlayerPos() */<< std::endl;
+    std::cout << "[ pID: " << std::setw(5) << player.getId() << " pHP: " << std::setw(5) << player.getHp() << " pDMG: " << std::setw(5) << playerDamage << std::setw(WIDTH-33) << " ]" /*<< player.getPlayerPos() */<< std::endl;
     std::cout << "[ Coins: " << std::setw(5) << player.getCoins() << std::setw(WIDTH - 12) << " ]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
 
@@ -300,8 +313,10 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
             xp += newMonster.getWinXP();
         }
 
+
         player.setXP(xp);
         player.addCoins(winGold);
+        player.setWeapon(WFactory.generateWeapon(caveCnf.getCaveLevel(), DB));
 
         stateOfGame = GAME;
 
@@ -689,7 +704,7 @@ void drawLoadPlayerMenu( character& player ) {
     std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
 
     for(int i = 0; i < loadingPlayers.size(); ++i) {
-        character hero = loadingPlayers[i];
+        character& hero = loadingPlayers[i];
 
         if(i == menuPos) {
             std::string input = "->"+ hero.getName() + "; lvl: " + std::to_string(hero.getLvl()) + "<-";
@@ -774,8 +789,9 @@ void keyboardCTRLFunc( character &player ) {
 
                     if( player.getId() != -1 ) { //If player is loaded
                         stateOfGame = GAME;
-                        //bogstav = 0; //DEBUG
+                        bogstav = 0; //DEBUG
                     }
+
                     break;
                 case KEY_ENTER:
                     enterPressed = true;
@@ -1063,7 +1079,7 @@ void keyboardCTRLFunc( character &player ) {
                 case KEY_ESC:
                     stateOfGame = STARTMENU;
                     menuPos = 3; //Top af menu
-                    stateOfGame = STARTMENU;
+
                     if(DB.saveHero(player)) {
                         timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
                         msgField = "GAME SAVED";

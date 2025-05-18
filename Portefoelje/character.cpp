@@ -6,6 +6,12 @@ character::character(std::string name, int ID): mName(name), mID(ID) {}
 
 character::character(std::string name, int ID, int xp, int lvl, int coins, int Hp, int Strength):mName(name), mID(ID), mXP(xp), mLvl(lvl), mCoins(coins), mHp(Hp), mStrength(Strength) {}
 
+character::~character() {
+    if(mWeapon != nullptr) {
+        delete(mWeapon);
+    }
+};
+
 const int character::getXP() const {
     return mXP;
 }
@@ -76,4 +82,16 @@ void character::addCoins(int coinsToAdd) {
 
 void character::setCoins(int coinsToAdd) {
     mCoins = coinsToAdd;
+}
+
+void  character::setWeapon(Weapon input) {
+    if(mWeapon != nullptr) {
+        delete(mWeapon);
+    }
+
+    mWeapon = new Weapon(input);
+}
+
+const Weapon*  character::getWeapon() const {
+    return mWeapon;
 }

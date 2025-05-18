@@ -6,6 +6,7 @@
 #include <vector>
 #include "character.h"
 
+
 class sqlDB
 {
 public:
@@ -29,6 +30,8 @@ public:
     bool killHero(const character &hero);
 
     bool loadWeaponShop(const character &hero);
+
+    bool addWeaponType(std::string name, int durability, int modifier, int price);
 
 private:
     std::string mFile;

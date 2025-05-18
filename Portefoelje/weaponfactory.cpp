@@ -1,6 +1,5 @@
 #include "weaponfactory.h"
-#include "cavefactory.h"
-#include "SQLdatabase.h"
+
 #include <random>
 #include <string>
 
@@ -8,7 +7,7 @@ std::default_random_engine weaponGenerator;
 
 WeaponFactory::WeaponFactory() {}
 
-Weapon WeaponFactory::generateWeapon(int caveLvl) {
+Weapon WeaponFactory::generateWeapon(int caveLvl, sqlDB &DB) {
 
 
     //std::uniform_int_distribution<int> distribution(0, caveLvl); //
@@ -19,7 +18,9 @@ Weapon WeaponFactory::generateWeapon(int caveLvl) {
 
     std::string weaponName = materialNames[weaponLvl]+" "+weaponType[weaponTypeMod];
 
-    Weapon output = Weapon(weaponName, weaponLvl, (weaponLvl*(2/3)), weaponTypeMod*weaponLvl, weaponLvl*100);
+    Weapon output = Weapon(weaponName, weaponLvl, (weaponLvl*(2/3)), weaponTypeMod*weaponLvl, weaponLvl*WEAPON_LVL_TO_PRICE_CONST);
+
+    DB.addWeaponType(weaponName, weaponLvl, weaponTypeMod*weaponLvl, weaponLvl*WEAPON_LVL_TO_PRICE_CONST);
 
     return output;
 }
