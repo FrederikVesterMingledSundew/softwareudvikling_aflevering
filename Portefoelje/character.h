@@ -14,6 +14,8 @@ public:
     character(std::string name, int ID);
     character(std::string name, int ID, int xp, int lvl, int coins, int mHp, int mStrength);
 
+    character(const character& copy); //Copy
+    character& operator=(const character& other); //Copy
     ~character();
 
     const int getXP() const;
@@ -35,6 +37,7 @@ public:
     void setCoins(int coinsToAdd);
     void setWeapon(Weapon input);
     const Weapon* getWeapon() const;
+    void weaponTakeHit();
 
 private:
     int mXP = 0, mLvl = START_LEVEL, mHp = START_HP, mStrength = START_STRENGTH, mID = -1, mPos = 0, mCoins = 0;

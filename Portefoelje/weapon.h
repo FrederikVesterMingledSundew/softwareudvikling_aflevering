@@ -6,7 +6,7 @@
 class Weapon
 {
 public:
-    Weapon(Weapon &copy) {
+    Weapon(const Weapon& copy) {
         this->mName = copy.mName;
         this->mDurability = copy.mDurability;
         this->mHits = copy.mHits;

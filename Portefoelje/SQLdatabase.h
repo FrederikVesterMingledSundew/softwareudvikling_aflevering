@@ -29,7 +29,7 @@ public:
 
     bool killHero(const character &hero);
 
-    bool loadWeaponShop(const character &hero);
+    bool loadWeaponShop(const character &hero, std::vector<Weapon> &shopItems);
 
     bool addWeaponType(std::string name, int durability, int modifier, int price);
 

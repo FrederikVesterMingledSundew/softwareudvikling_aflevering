@@ -269,10 +269,18 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
 
             switch(menuPos) {
             case 0:
-                damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+" damage!!";
-                std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
-                newMonster.hit(player.getStrength() * hitSuccess);
-                menuPos = 1;
+                if(player.getWeapon() != nullptr) {
+                    damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+"(+"+std::to_string(player.getWeapon()->getModifier())+") damage!!";
+                    std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+                    newMonster.hit(player.getStrength() * hitSuccess+player.getWeapon()->getModifier());
+                    player.weaponTakeHit();
+                }
+                else {
+                    damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+" damage!!";
+                    std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+                    newMonster.hit(player.getStrength() * hitSuccess);
+                    menuPos = 1;
+                }
                 break;
             case 1:
                 damageStr = "Opponents turn: " + std::to_string(newMonster.getDamage() * hitSuccess)+" damage!!";
@@ -316,7 +324,16 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
 
         player.setXP(xp);
         player.addCoins(winGold);
-        player.setWeapon(WFactory.generateWeapon(caveCnf.getCaveLevel(), DB));
+        Weapon newWeapon = WFactory.generateWeapon(caveCnf.getCaveLevel(), DB);
+        if(player.getWeapon() != nullptr) {
+            if(newWeapon.getModifier() > player.getWeapon()->getModifier()) {
+                player.setWeapon(newWeapon); //Nyt våben er bedre end det du har
+            }
+
+        }
+        else {
+            player.setWeapon(newWeapon); //Nyt våben!
+        }
 
         stateOfGame = GAME;
 
@@ -331,7 +348,7 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
         std::cout << "[----------------------------------------]" << std::endl;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(750)); //Så det ikke går alt for hurtigt
+    std::this_thread::sleep_for(std::chrono::milliseconds(2500)); //Så det ikke går alt for hurtigt
 }
 
 void drawMonsterConflict( character& player,  monster& monsterKiller ) {
@@ -408,9 +425,17 @@ void drawMonsterFight( character& player,  monster& monsterKiller ) {
 
     switch(menuPos) {
     case 0:
-        damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+" damage!!";
-        std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
-        monsterKiller.hit(player.getStrength() * hitSuccess);
+        if(player.getWeapon() != nullptr) {
+            damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+"(+"+std::to_string(player.getWeapon()->getModifier())+") damage!!";
+            std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+            monsterKiller.hit(player.getStrength() * hitSuccess+player.getWeapon()->getModifier());
+            player.weaponTakeHit();
+        }
+        else {
+            damageStr = "Your turn: " + std::to_string(player.getStrength() * hitSuccess)+" damage!!";
+            std::cout << "[ " << std::setw(WIDTH-1) << std::left << damageStr << "]" << std::endl;
+            monsterKiller.hit(player.getStrength() * hitSuccess);
+        }
         menuPos = 1;
         break;
     case 1:
@@ -489,14 +514,41 @@ void drawGameWon() {
 }
 
 
-void drawGameShop( character& player ) {
+void drawGameShop( character& player, std::vector<Weapon> shopItems ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "GAMESHOP" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
 
+    for(int i = 0; i < shopItems.size(); ++i) {
+        if(i == menuPos) {
+
+            std::string item = "->"+shopItems[i].getName()+": <-";
+            std::string itemEffect = "->"+std::to_string(shopItems[i].getModifier())+" DMG - "+std::to_string(shopItems[i].getDurability())+" Hits - "+std::to_string(shopItems[i].getPrice())+" Coins"+ "<-";
+
+            std::cout << "[ " << std::setw(WIDTH-2) << std::left << item << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-2) << std::left << itemEffect << " ]" << std::endl;
+        } else {
+
+            std::string item = shopItems[i].getName()+":";
+            std::string itemEffect = std::to_string(shopItems[i].getModifier())+" DMG - "+std::to_string(shopItems[i].getDurability())+" Hits - "+std::to_string(shopItems[i].getPrice())+" Coins";
+
+            std::cout << "[ " << std::setw(WIDTH-2) << std::left << item << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-2) << std::left << itemEffect << " ]" << std::endl;
+        }
+    }
+
+    if(enterPressed) {
+        enterPressed = false;
+
+        player.setCoins(player.getCoins() - shopItems[menuPos].getPrice());
+        player.setWeapon(shopItems[menuPos]);
+
+        stateOfGame = GAME;
+    }
+
 }
 
-void drawMenu( character& player ) {
+void drawMenu( character& player, std::vector<Weapon>& shoppingCart ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
@@ -569,7 +621,7 @@ void drawMenu( character& player ) {
                 break;
             case 1:
 
-                if(DB.loadWeaponShop( player )) {
+                if(DB.loadWeaponShop( player, shoppingCart )) {
                     stateOfGame = SHOP;
                 }
                 else {
@@ -800,15 +852,18 @@ void keyboardCTRLFunc( character &player ) {
                 }
 
             }
-            if(stateOfGame == SHOP) {
+            else if(stateOfGame == SHOP) {
                 switch(bogstav) {
                 case KEY_UP:
-                    if(menuPos < (menuOptions-1)) { ++menuPos; }
-                    break;
-                case KEY_DOWN:
                     if(menuPos > 0) { --menuPos; }
                     break;
+                case KEY_DOWN:
+                    if(menuOptions >= 1) {
+                        if(menuPos < (menuOptions-1)) { ++menuPos; }
+                    }
+                    break;
                 case KEY_ESC:
+                    menuPos = 3;
                     stateOfGame = STARTMENU;
                     break;
                 case KEY_ENTER:
@@ -816,7 +871,6 @@ void keyboardCTRLFunc( character &player ) {
                     break;
 
                 }
-
             }
             else if(stateOfGame == GAME) {
                 switch(bogstav) {
@@ -1134,6 +1188,7 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     character player;
+    std::vector<Weapon> shopItems {};
     monster currentMonster;
     cave currentCave;
 
@@ -1155,7 +1210,7 @@ int main()
             } else {
                 menuOptions = 4;
             }
-            drawMenu( player );
+            drawMenu( player, shopItems );
             break;
         case LOAD_PLAYER:
             menuOptions = loadingPlayers.size();
@@ -1168,7 +1223,8 @@ int main()
             drawAbout();
             break;
         case SHOP:
-            drawGameShop( player );
+            menuOptions = shopItems.size();
+            drawGameShop( player, shopItems );
             break;
         case GAME:
             drawGame( player, currentMonster, currentCave );

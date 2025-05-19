@@ -6,6 +6,45 @@ character::character(std::string name, int ID): mName(name), mID(ID) {}
 
 character::character(std::string name, int ID, int xp, int lvl, int coins, int Hp, int Strength):mName(name), mID(ID), mXP(xp), mLvl(lvl), mCoins(coins), mHp(Hp), mStrength(Strength) {}
 
+character::character(const character& other) //Copy
+    : mName(other.mName),
+    mID(other.mID),
+    mXP(other.mXP),
+    mLvl(other.mLvl),
+    mCoins(other.mCoins),
+    mHp(other.mHp),
+    mStrength(other.mStrength),
+    mPos(other.mPos),
+    mWeapon(nullptr) {
+    if (other.mWeapon != nullptr) {
+        mWeapon = new Weapon(*other.mWeapon);
+    }
+}
+
+character& character::operator=(const character& other) { //Assignments
+    if (this != &other) {
+
+        mName = other.mName;
+        mID = other.mID;
+        mXP = other.mXP;
+        mLvl = other.mLvl;
+        mCoins = other.mCoins;
+        mHp = other.mHp;
+        mStrength = other.mStrength;
+        mPos = other.mPos;
+
+        // Handle mWeapon
+        if(mWeapon != nullptr) {
+            delete mWeapon;
+        }
+        mWeapon = nullptr;
+        if (other.mWeapon != nullptr) {
+            mWeapon = new Weapon(*other.mWeapon);
+        }
+    }
+    return *this;
+}
+
 character::~character() {
     if(mWeapon != nullptr) {
         delete(mWeapon);
@@ -94,4 +133,14 @@ void  character::setWeapon(Weapon input) {
 
 const Weapon*  character::getWeapon() const {
     return mWeapon;
+}
+
+void character::weaponTakeHit() {
+    if(mWeapon != nullptr) {
+        mWeapon->takeHit();
+        if(mWeapon->getRemainingHits() <= 0) {
+            delete(mWeapon);
+            mWeapon = nullptr;
+        }
+    }
 }

@@ -1,6 +1,12 @@
 #include "SQLdatabase.h"
 #include <iostream>
+
+//Delete libs
 #include <cstring>
+#include <chrono>
+#include <thread>
+
+
 #include "weaponfactory.h"
 
 
@@ -21,43 +27,37 @@ bool sqlDB::checkUserTable() {
         std::cout << "[ERROR]: Database is not open." << std::endl;
         return false;
     }
-    std::string sql = "CREATE TABLE IF NOT EXISTS heroes(\
-        ID INTEGER PRIMARY KEY AUTOINCREMENT,\
-        HERO TEXT NOT NULL,\
-        XP INTEGER NOT NULL,\
-        LEVEL INTEGER NOT NULL,\
-        COINS INTEGER NOT NULL,\
-        HP INTEGER NOT NULL,\
-        STRENGTH INTEGER NOT NULL\
-        );";
+    std::string sql = R"(
+        CREATE TABLE IF NOT EXISTS weaponsTypes (
+        NAME	TEXT NOT NULL,
+        ID	INTEGER,
+        MODIFIER	INTEGER NOT NULL DEFAULT 0,
+        DURABILITY	INTEGER NOT NULL DEFAULT 0,
+        PRICE	INTEGER NOT NULL DEFAULT 1000,
+        PRIMARY KEY(ID AUTOINCREMENT)
+        );)";
 
-        sql += "\
-        CREATE TABLE IF NOT EXISTS heroStats (\
-        HERO_ID	INTEGER NOT NULL UNIQUE,\
-        NAME	TEXT NOT NULL,\
-        KILLS	INTEGER NOT NULL DEFAULT 0,\
-        XP_GAINED_FROM_KILLS	INTEGER NOT NULL DEFAULT 0,\
-        PRIMARY KEY(HERO_ID)\
-        );";
+        sql += R"(CREATE TABLE IF NOT EXISTS heroes(
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        HERO TEXT NOT NULL,
+        XP INTEGER NOT NULL,
+        LEVEL INTEGER NOT NULL,
+        COINS INTEGER NOT NULL,
+        HP INTEGER NOT NULL,
+        STRENGTH INTEGER NOT NULL,
+        WEAPON_TYPE_ID INTEGER,
+        WEAPON_HITS	INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY(WEAPON_TYPE_ID) REFERENCES weaponsTypes(ID)
+        );)";
 
-        sql += "\
-        CREATE TABLE IF NOT EXISTS weaponsTypes (\
-        NAME	TEXT NOT NULL,\
-        ID	INTEGER,\
-        MODIFIER	INTEGER NOT NULL DEFAULT 0,\
-        DURABILITY	INTEGER NOT NULL DEFAULT 0,\
-        PRICE	INTEGER NOT NULL DEFAULT 1000,\
-        PRIMARY KEY(ID AUTOINCREMENT)\
-        );";
-
-        sql += "\
-        CREATE TABLE IF NOT EXISTS activeWeapons (\
-        OBJECT_ID	INTEGER,\
-        WEAPON_TYPE_ID	INTEGER NOT NULL,\
-        PLAYER_ID	INTEGER NOT NULL,\
-        HITS	INTEGER NOT NULL DEFAULT 0,\
-        PRIMARY KEY(OBJECT_ID AUTOINCREMENT)\
-        );";
+        sql += R"(
+        CREATE TABLE IF NOT EXISTS heroStats (
+        HERO_ID	INTEGER NOT NULL UNIQUE,
+        NAME	TEXT NOT NULL,
+        KILLS	INTEGER NOT NULL DEFAULT 0,
+        XP_GAINED_FROM_KILLS	INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY(HERO_ID)
+        );)";
 
     char* errMsg = nullptr;
     int rc = sqlite3_exec(mSqlDB, sql.c_str(), nullptr, nullptr, &errMsg);
@@ -79,7 +79,7 @@ int sqlDB::addNewHero(std::string &name) {
     }
 
     sqlite3_stmt* stmt;
-    const char* insertSQL = "INSERT INTO heroes (HERO, XP, LEVEL, COINS, HP, STRENGTH) VALUES (?, 0, 1, 0, ?, ?);";
+    const char* insertSQL = "INSERT INTO heroes (HERO, XP, LEVEL, COINS, HP, STRENGTH, WEAPON_TYPE_ID, WEAPON_HITS) VALUES (?, 0, 1, 0, ?, ?, 0, 0);";
 
     if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
@@ -104,22 +104,6 @@ int sqlDB::addNewHero(std::string &name) {
     // Finalize the statement to free resources
     sqlite3_finalize(stmt);
 
-    insertSQL = "INSERT INTO activeWeapons (WEAPON_TYPE_ID, PLAYER_ID, HITS) VALUES (0, ?, 0);"; //Har ikke brugt foreign key på activeWeapon, fordi spilleren kan blive slettet.
-
-    if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
-        std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
-        return -1;
-    }
-
-    sqlite3_bind_int(stmt, 1, lastInsertID);
-
-    // Execute the statement
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        std::cerr << "[ERROR]: Failed to execute statement: \n" << sqlite3_errmsg(mSqlDB) << std::endl;
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
 
     return lastInsertID; //Player UID
 }
@@ -131,22 +115,25 @@ bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
     }
 
     sqlite3_stmt* stmt;
-    //const char* selectSQL = "SELECT `ID`, `HERO`, `XP`, `LEVEL`, `COINS`, `HP`, `STRENGTH` FROM heroes";
 
     const char* selectSQL = "\
-                            SELECT heroes.ID, heroes.HERO, heroes.XP, heroes.LEVEL, heroes.COINS, heroes.HP, heroes.STRENGTH, \
-                                activeWeapons.HITS,\
-                                weaponsTypes.DURABILITY, weaponsTypes.MODIFIER, weaponsTypes.NAME, weaponsTypes.PRICE\
-                            FROM heroes, activeWeapons, weaponsTypes\
-                            WHERE activeWeapons.PLAYER_ID = heroes.ID AND weaponsTypes.ID = (0 OR activeWeapons.WEAPON_TYPE_ID);\
-                            ";
+                            SELECT heroes.ID, heroes.HERO, heroes.XP, heroes.LEVEL, heroes.COINS, heroes.HP, heroes.STRENGTH, heroes.WEAPON_TYPE_ID, heroes.WEAPON_HITS, \
+                                weaponsTypes.DURABILITY, weaponsTypes.MODIFIER, weaponsTypes.PRICE, \
+                            CASE \
+                                WHEN weaponsTypes.NAME IS NULL THEN \"\" \
+                                ELSE weaponsTypes.NAME \
+                            END AS NAME \
+                            FROM heroes \
+                            LEFT JOIN weaponsTypes ON weaponsTypes.ID = WEAPON_TYPE_ID;\
+        ";//Komma efter PRICE er meningen
+
     // Prepare the SQL statement
     if (sqlite3_prepare_v2(mSqlDB, selectSQL, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "[ERROR]: Failed to prepare SQL statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
         return false;
     }
 
-    // Clear the buffer to ensure it's fresh
+    // Clear the buffer
     buffer.clear();
 
     // Iterate through the results of the query
@@ -160,15 +147,20 @@ bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
         int hp = sqlite3_column_int(stmt, 5);                                                   // HP
         int strength = sqlite3_column_int(stmt, 6);                                             // STRENGTH
 
-        int weaponHits = sqlite3_column_int(stmt, 7);                                           // WEAPON HITS
-        int weaponDurability = sqlite3_column_int(stmt, 8);                                     // WEAPON DURABILITY
-        int modifier = sqlite3_column_int(stmt, 9);                                             // WEAPON MODIFIER
-        std::string weaponName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 10));  // WEAPON NAME
+        int weaponID = sqlite3_column_int(stmt, 7);                                             // WEAPON ID
+        int weaponHits = sqlite3_column_int(stmt, 8);                                           // WEAPON HITS
+        int weaponDurability = sqlite3_column_int(stmt, 9);                                     // WEAPON DURABILITY
+        int modifier = sqlite3_column_int(stmt, 10);                                             // WEAPON MODIFIER
         int weaponPrice = sqlite3_column_int(stmt, 11);                                         // WEAPON PRICE
+        std::string weaponName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 12));  // WEAPON NAME
 
         character hero(name, ID, xp, level, coins, hp, strength);
-        Weapon armory = Weapon(weaponName, weaponDurability, weaponHits, modifier, weaponPrice);
-        //hero.setWeapon(armory);
+        if(weaponID != 0) {
+            Weapon armory(weaponName, weaponDurability, weaponHits, modifier, weaponPrice);
+            hero.setWeapon(armory);
+            //std::cout << "wName: " << weaponName << ", Durability: " << weaponDurability << ", Hits: " << weaponHits << ", Mod: " << modifier << ", Price: " << weaponPrice << std::endl;
+        }
+
 
         // Add the hero to the buffer
         buffer.push_back(hero);
@@ -178,6 +170,7 @@ bool sqlDB::searchForHeroes(std::vector<character> &buffer) {
     sqlite3_finalize(stmt);
 
     std::cout << "[INFO]: Successfully retrieved heroes from the database." << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000)); //DEBUG
     return true;
 }
 
@@ -188,13 +181,9 @@ bool sqlDB::saveHero(const character &hero) {
     }
 
     sqlite3_stmt* stmt;
-    //const char* insertSQL = "UPDATE heroes SET `XP` = ?, `LEVEL` = ?, `COINS` = ?, `HP` = ?, `STRENGTH` = ? WHERE `ID` = ?;";
-
-    const char* insertSQL = "BEGIN TRANSACTION; \
-                                UPDATE heroes SET `XP` = ?, `LEVEL` = ?, `COINS` = ?, `HP` = ?, `STRENGTH` = ? WHERE `ID` = ?;\
-                                UPDATE activeWeapons SET HITS = ?, WEAPON_TYPE_ID = (SELECT weaponsTypes.ID FROM weaponsTypes WHERE weaponsTypes.NAME = ? LIMIT 1) WHERE PLAYER_ID = ?;\
-                            COMMIT;\
-                                ";
+    const char* insertSQL = "UPDATE heroes SET `XP` = ?, `LEVEL` = ?, `COINS` = ?, `HP` = ?, `STRENGTH` = ?, `WEAPON_TYPE_ID` = COALESCE(\
+        (SELECT ID FROM weaponsTypes WHERE NAME = ? LIMIT 1), \
+        0 ), `WEAPON_HITS` = ? WHERE `ID` = ?;";
 
     if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
@@ -207,19 +196,18 @@ bool sqlDB::saveHero(const character &hero) {
     sqlite3_bind_int(stmt, 3, hero.getCoins());
     sqlite3_bind_int(stmt, 4, hero.getHp());
     sqlite3_bind_int(stmt, 5, hero.getStrength());
-    sqlite3_bind_int(stmt, 6, hero.getId());
+
 
     //Hero's weapon
     int getHits = 0;
     std::string getName {};
     if(hero.getWeapon() != nullptr) {
-        int getHits = hero.getWeapon()->getRemainingHits();
-        std::string getName = hero.getWeapon()->getName();
+        getHits = hero.getWeapon()->getRemainingHits();
+        getName = hero.getWeapon()->getName();
     }
-
+    sqlite3_bind_text(stmt, 6, getName.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 7, getHits);
-    sqlite3_bind_text(stmt, 8, getName.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 9, hero.getId());
+    sqlite3_bind_int(stmt, 8, hero.getId());
 
     // Execute the statement
     if (sqlite3_step(stmt) != SQLITE_DONE) {
@@ -266,7 +254,51 @@ bool sqlDB::killHero(const character &hero) {
     return true;
 }
 
-bool sqlDB::loadWeaponShop(const character &hero) {
+bool sqlDB::loadWeaponShop(const character &hero, std::vector<Weapon> &shopItems) {
+    if(!this->isOpen()) {
+        std::cout << "[ERROR]: Database is not open." << std::endl;
+        return false;
+    }
+
+    const char* mSQLquery = R"(
+                            SELECT ID, NAME, MODIFIER, DURABILITY, PRICE
+                                FROM weaponsTypes
+                                WHERE PRICE < 1000
+                                ORDER BY PRICE DESC
+                                LIMIT 10
+                            )";
+    sqlite3_stmt* stmt;
+
+    // Prepare the SQL statement
+    if (sqlite3_prepare_v2(mSqlDB, mSQLquery, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "[ERROR]: Failed to prepare SQL statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, hero.getCoins());
+
+    // Clear the buffer
+    shopItems.clear();
+
+    // Iterate through the results of the query
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        // Retrieve and assign values from the database row
+        int ID = sqlite3_column_int(stmt, 0);                                                   //WEAPON ID
+        std::string weaponName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));   // WEAPON NAME
+        int modifier = sqlite3_column_int(stmt, 2);                                            // WEAPON MODIFIER
+        int weaponDurability = sqlite3_column_int(stmt, 3);                                     // WEAPON DURABILITY
+        int weaponPrice = sqlite3_column_int(stmt, 4);                                         // WEAPON PRICE
+
+        Weapon armory(weaponName, weaponDurability, 0, modifier, weaponPrice);
+        // Add the weapon to the buffer
+        shopItems.push_back(armory);
+    }
+
+    // Finalize the statement to free resources
+    sqlite3_finalize(stmt);
+
+    std::cout << "[INFO]: Successfully retrieved weapons from the database." << std::endl;
+
     return true;
 }
 
@@ -316,9 +348,14 @@ bool sqlDB::addWeaponType(std::string name, int durability, int modifier, int pr
     // Get the last inserted row ID
     int lastInsertID = static_cast<int>(sqlite3_last_insert_rowid(mSqlDB));
 
+    if(lastInsertID != 0) {
+        std::cout << "[INFO]: You found a new weapon called " << name << std::endl;
+    }
+    else {
+        std::cout << "[INFO]: The weapon you took in the cave\nis already discovered: " << name << std::endl;
+    }
 
 
-    std::cout << "[INFO]: Hero inserted successfully with ID: " << lastInsertID << std::endl;
 
     // Finalize the statement to free resources
     sqlite3_finalize(stmt);
