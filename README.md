@@ -1,11 +1,12 @@
 # KILL THE DRAGON
-You are a hero. - You are marked 'H'
+You are a hero.
+ - You are marked by 'H' in the bottom
 You can move from side to side as you move along.
 
 You control by pressing A or D and avoid or take on challenges.
 
 Kill all the monsters you can to gain XP, but avoid them you cannot.
-Monsters are marked 'M'
+- Monsters are marked 'M'
 
 Most monsters you can flee from but the dragon you cannot.
 The dragon is the hardest to defeat.
@@ -17,6 +18,11 @@ Gain as much experience as you can and try your luck with the dragon!!!
 Do not die or you will have to start OVER!!!
 
 The games saves automatically on STARTMENU.
+
+If you fancy a challenge the map now contains caves. The villagers in a local town will
+pay you if you empty the caves, so they can use them as mines. 
+But beware if you enter and die you will still die and be lost. 
+- Caves are marked by '#'
 
 ## Game controls
 You control the game with the keys A and D

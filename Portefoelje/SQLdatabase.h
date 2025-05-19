@@ -6,6 +6,7 @@
 #include <vector>
 #include "character.h"
 
+
 class sqlDB
 {
 public:
@@ -18,7 +19,7 @@ public:
 
     bool isOpen() const { return mSqlDB != nullptr; }
 
-    bool checkUserTable(const int heroNameLength);
+    bool checkUserTable();
 
     int addNewHero(std::string &name);
 
@@ -27,6 +28,10 @@ public:
     bool saveHero(const character &hero);
 
     bool killHero(const character &hero);
+
+    bool loadWeaponShop(const character &hero, std::vector<Weapon> &shopItems);
+
+    bool addWeaponType(std::string name, int durability, int modifier, int price);
 
 private:
     std::string mFile;
