@@ -1,11 +1,8 @@
 #include "monster.h"
-#include <random>
-
-std::default_random_engine monsterGenerator;
 
 monster::monster() {}
 
-monster::monster(int lvl): mLevel(lvl) {
+/*monster::monster(int lvl): mLevel(lvl) {
     std::uniform_int_distribution<int> distribution(0,49);
     int choiceOfName = distribution(monsterGenerator);
     switch(lvl) {
@@ -35,7 +32,7 @@ monster::monster(int lvl): mLevel(lvl) {
     mDamage = 2+lvl;
     winXP = mHp + mDamage + lvl;
     mName += " "+monsterNames[choiceOfName];
-}
+}*/
 
 monster::monster(int lvl, std::string name): mLevel(lvl), mName(name) {
     mHp = 10+(2*lvl);
@@ -65,6 +62,13 @@ void monster::hit(const int &damage) {
 
 const int monster::getWinXP() const {
     return winXP;
+}
+
+const bool monster::isDragon() const {
+    return mIsDragon;
+}
+void monster::setDragon(bool isDragon) {
+    mIsDragon = isDragon;
 }
 
 /*
