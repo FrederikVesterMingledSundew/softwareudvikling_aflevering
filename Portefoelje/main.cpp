@@ -10,6 +10,7 @@
 
 
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 //#include <cstdlib> // For system()
 #include <unistd.h>
@@ -51,7 +52,7 @@
 
 #define TerminalClear() std::cout << "\x1B[2J\x1B[H" //std::system("clear"); før men den tager meget computerkraft
 
-enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, SHOP, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, CAVE_INTRO, CAVE, GAME_OVER, WON, EXIT};
+enum gameState {STARTMENU, GAME, CREATE_PLAYER, LOAD_PLAYER, ABOUT, SHOP, MONSTER, MONSTER_FIGHT, MONSTER_STATUS, STATISTICS, CAVE_INTRO, CAVE, GAME_OVER, WON, EXIT};
 enum gameState stateOfGame;
 
 //Variabler
@@ -75,6 +76,7 @@ CaveFactory CFactory;
 //Weapons
 WeaponFactory WFactory;
 
+//Random
 std::default_random_engine generator;
 
 //World
@@ -321,7 +323,7 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
             xp += newMonster.getWinXP();
         }
 
-
+        //Player får XP, Coins og våben hvis det er et bedre våben
         player.setXP(xp);
         player.addCoins(winGold);
         Weapon newWeapon = WFactory.generateWeapon(caveCnf.getCaveLevel(), DB);
@@ -334,6 +336,9 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
         else {
             player.setWeapon(newWeapon); //Nyt våben!
         }
+
+        //Update player stats
+        DB.addToStats(player, caveCnf.getMonsters().size(), xp);
 
         stateOfGame = GAME;
 
@@ -452,6 +457,9 @@ void drawMonsterFight( character& player,  monster& monsterKiller ) {
         int xp = player.getXP();
         player.setXP(xp+monsterKiller.getWinXP());
 
+        //Update player stats
+        DB.addToStats(player, 1, monsterKiller.getWinXP());
+
         if(monsterKiller.isDragon()) {
             stateOfGame = WON;
         }
@@ -548,7 +556,7 @@ void drawGameShop( character& player, std::vector<Weapon> shopItems ) {
 
 }
 
-void drawMenu( character& player, std::vector<Weapon>& shoppingCart ) {
+void drawMenu( character& player, std::vector<Weapon>& shoppingCart, std::vector<statEntry> &stats ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
     std::cout << "[----------------------------------------]" << std::endl;
@@ -564,32 +572,44 @@ void drawMenu( character& player, std::vector<Weapon>& shoppingCart ) {
     if(player.getId() != -1) { //Player is loaded
 
         switch(menuPos) {
-        case 4:
+        case 5:
             std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
-        case 3:
+        case 4:
             std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 3:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
         case 2:
             std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->SHOP<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
         case 1:
             std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-15) << "->SHOP<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->STATS-" << std::setw(13) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
             break;
         case 0:
@@ -597,6 +617,94 @@ void drawMenu( character& player, std::vector<Weapon>& shoppingCart ) {
             std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-17) << "SHOP" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            break;
+        default:
+            std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: Menu: " << menuPos << "" << " ]" << std::endl;
+            ;
+        }
+
+        if(enterPressed) {
+            enterPressed = false;
+            switch(menuPos) {
+            case 5:
+                DB.searchForHeroes(loadingPlayers);
+                stateOfGame = LOAD_PLAYER;
+                menuPos = 0;
+                break;
+            case 4:
+                tmpName =""; //Her kører den kun 1 gang
+                stateOfGame = CREATE_PLAYER;
+                break;
+            case 3:
+                stateOfGame = ABOUT;
+                break;
+            case 2:
+
+                if(DB.loadWeaponShop( player, shoppingCart )) {
+                    stateOfGame = SHOP;
+                }
+                else {
+                    timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+                    msgField = "SQL Failed";
+                }
+                break;
+            case 1:
+                if(DB.loadStats( stats )) {
+                    stateOfGame = STATISTICS;
+                }
+                else {
+                    timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+                    msgField = "SQL Failed";
+                }
+
+                break;
+            case 0:
+                stateOfGame = EXIT;
+                break;
+            default:
+                std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: EnterMenu: " << menuPos << "" << " ]" << std::endl;
+                ;
+            }
+        }
+
+    } else { //No player is loaded
+
+        switch(menuPos) {
+        case 4:
+            std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 3:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 2:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 1:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-15) << "->STATS<-" << std::setw(13) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
+            break;
+        case 0:
+            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
+            std::cout << "[ " << std::setw(WIDTH-17) << "STATS" << std::setw(15) << "" << " ]" << std::endl;
             std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
             break;
         default:
@@ -620,70 +728,14 @@ void drawMenu( character& player, std::vector<Weapon>& shoppingCart ) {
                 stateOfGame = ABOUT;
                 break;
             case 1:
-
-                if(DB.loadWeaponShop( player, shoppingCart )) {
-                    stateOfGame = SHOP;
+                if(DB.loadStats( stats )) {
+                    stateOfGame = STATISTICS;
                 }
                 else {
                     timeOut = std::chrono::steady_clock::now() + std::chrono::seconds(5);
                     msgField = "SQL Failed";
                 }
-                break;
-            case 0:
-                stateOfGame = EXIT;
-                break;
-            default:
-                std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: EnterMenu: " << menuPos << "" << " ]" << std::endl;
-                ;
-            }
-        }
 
-    } else { //No player is loaded
-
-        switch(menuPos) {
-        case 3:
-            std::cout << "[ " << std::setw(WIDTH-15) << std::right << "->LOAD GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
-            break;
-        case 2:
-            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-15) << "->NEW GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
-            break;
-        case 1:
-            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-15) << "->ABOUT<-" << std::setw(13) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "EXIT GAME" << std::setw(15) << "" << " ]" << std::endl;
-            break;
-        case 0:
-            std::cout << "[ " << std::setw(WIDTH-17) << std::right << "LOAD GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "NEW GAME" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-17) << "ABOUT" << std::setw(15) << "" << " ]" << std::endl;
-            std::cout << "[ " << std::setw(WIDTH-15) << "->EXIT GAME<-" << std::setw(13) << "" << " ]" << std::endl;
-            break;
-        default:
-            std::cout << "[ " << std::setw(WIDTH) << std::right << "[DEBUG]: Menu: " << menuPos << "" << " ]" << std::endl;
-            ;
-        }
-
-        if(enterPressed) {
-            enterPressed = false;
-            switch(menuPos) {
-            case 3:
-                DB.searchForHeroes(loadingPlayers);
-                stateOfGame = LOAD_PLAYER;
-                menuPos = 0;
-                break;
-            case 2:
-                tmpName =""; //Her kører den kun 1 gang
-                stateOfGame = CREATE_PLAYER;
-                break;
-            case 1:
-                stateOfGame = ABOUT;
                 break;
             case 0:
                 stateOfGame = EXIT;
@@ -778,6 +830,31 @@ void drawLoadPlayerMenu( character& player ) {
         stateOfGame = GAME;
     }
 
+
+    if(timeOut > std::chrono::steady_clock::now()) {
+        std::cout << "[----------------------------------------]" << std::endl;
+        std::cout << "[ " << std::setw(WIDTH-2) << msgField << " ]" << std::endl;
+        std::cout << "[----------------------------------------]" << std::endl;
+    }
+}
+
+void drawStats( std::vector<statEntry> &stats ) {
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
+    std::cout << "[----------------------------------------]" << std::endl;
+    std::cout << "[" << std::setw(WIDTH) << "" << "]" << std::endl;
+
+    std::ostringstream output;
+    output << std::setw((WIDTH)/3) << "Name" << std::setw((WIDTH-2)/4) << "Kills" << std::setw((WIDTH-2)/3) << "Kill XP";
+    std::cout << "[ " << std::setw(WIDTH-1) << output.str() << "]" << std::endl;
+
+    output.str("");
+
+    for( statEntry &entry : stats ) {
+        output << std::setw((WIDTH)/3) << entry.name << std::setw((WIDTH-2)/4) << entry.kills << std::setw((WIDTH-2)/3) << entry.xpFromKills;
+        std::cout << "[ " << std::setw(WIDTH-1) << output.str() << "]" << std::endl;
+        output.str("");
+    }
 
     if(timeOut > std::chrono::steady_clock::now()) {
         std::cout << "[----------------------------------------]" << std::endl;
@@ -1102,6 +1179,16 @@ void keyboardCTRLFunc( character &player ) {
 
                 }
             }
+            else if(stateOfGame == STATISTICS) {
+                switch(bogstav) {
+                case KEY_ENTER:
+                case KEY_QUIT:
+                case KEY_ESC:
+                    stateOfGame = STARTMENU;
+                    //goto exitLoop_1;
+                    break;
+                }
+            }
             else if(stateOfGame == ABOUT) {
                 switch(bogstav) {
                 case KEY_ENTER:
@@ -1189,6 +1276,7 @@ int main()
 
     character player;
     std::vector<Weapon> shopItems {};
+    std::vector<statEntry> stats;
     monster currentMonster;
     cave currentCave;
 
@@ -1206,11 +1294,11 @@ int main()
         switch(stateOfGame) {
         case STARTMENU:
             if(player.getId() != -1) { //Is player loaded
-                menuOptions = 5;
+                menuOptions = 6;
             } else {
-                menuOptions = 4;
+                menuOptions = 5;
             }
-            drawMenu( player, shopItems );
+            drawMenu( player, shopItems, stats );
             break;
         case LOAD_PLAYER:
             menuOptions = loadingPlayers.size();
@@ -1221,6 +1309,9 @@ int main()
             break;
         case ABOUT:
             drawAbout();
+            break;
+        case STATISTICS:
+            drawStats( stats );
             break;
         case SHOP:
             menuOptions = shopItems.size();
