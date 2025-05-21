@@ -263,7 +263,7 @@ bool sqlDB::loadWeaponShop(const character &hero, std::vector<Weapon> &shopItems
     const char* mSQLquery = R"(
                             SELECT ID, NAME, MODIFIER, DURABILITY, PRICE
                                 FROM weaponsTypes
-                                WHERE PRICE < 1000
+                                WHERE PRICE < ?
                                 ORDER BY PRICE DESC
                                 LIMIT 10
                             )";
@@ -306,22 +306,8 @@ bool sqlDB::addWeaponType(std::string name, int durability, int modifier, int pr
 
     if(!this->isOpen()) {
         std::cout << "[ERROR]: Database is not open." << std::endl;
-        return -1;
+        return false;
     }
-
-    /*
-
-        sql += "\
-        CREATE TABLE IF NOT EXISTS weaponsTypes (\
-        NAME	TEXT NOT NULL,\
-        ID	INTEGER NOT NULL DEFAULT 0,\
-        MODIFIER	INTEGER NOT NULL DEFAULT 0,\
-        DURABILITY	INTEGER NOT NULL DEFAULT 0,\
-        PRICE	INTEGER NOT NULL DEFAULT 1000,\
-        PRIMARY KEY(ID AUTOINCREMENT)\
-        );";
-
-     */
 
     sqlite3_stmt* stmt;
     const char* insertSQL = "INSERT INTO weaponsTypes (NAME, DURABILITY, MODIFIER, PRICE) SELECT ?, ?, ?, ? WHERE NOT EXISTS ( SELECT 1 FROM weaponsTypes WHERE NAME = ? );";
@@ -364,4 +350,84 @@ bool sqlDB::addWeaponType(std::string name, int durability, int modifier, int pr
     //return lastInsertID;
 
     return true;
+}
+
+
+bool sqlDB::addToStats(const character &hero, int kills, int XP) {
+    if(!this->isOpen()) {
+        std::cout << "[ERROR]: Database is not open." << std::endl;
+        return false;
+    }
+
+    sqlite3_stmt* stmt;
+    const char* insertSQL = R"(
+                                INSERT INTO herostats (HERO_ID, NAME, KILLS, XP_GAINED_FROM_KILLS) VALUES (?, ?, ?, ?)
+                                ON CONFLICT(HERO_ID) DO UPDATE
+                                SET KILLS = KILLS + excluded.KILLS, XP_GAINED_FROM_KILLS = XP_GAINED_FROM_KILLS + excluded.XP_GAINED_FROM_KILLS;
+                            )";
+
+    if (sqlite3_prepare_v2(mSqlDB, insertSQL, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "[ERROR]: Failed to prepare statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
+        return -1;
+    }
+
+    sqlite3_bind_int(stmt, 1, hero.getId());
+    sqlite3_bind_text(stmt, 2, hero.getName().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 3, kills);
+    sqlite3_bind_int(stmt, 4, XP);
+
+
+    // Execute the statement
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "[ERROR]: Failed to execute statement: \n" << sqlite3_errmsg(mSqlDB) << std::endl;
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+    // Finalize the statement to free resources
+    sqlite3_finalize(stmt);
+
+    return true;
+}
+
+bool sqlDB::loadStats(std::vector<statEntry> &stats) {
+    if(!this->isOpen()) {
+        std::cout << "[ERROR]: Database is not open." << std::endl;
+        return false;
+    }
+
+    const char* mSQLquery = R"(
+                            SELECT HERO_ID, NAME, KILLS, XP_GAINED_FROM_KILLS
+                                FROM heroStats
+                                WHERE 1
+                            )";
+    sqlite3_stmt* stmt;
+
+    // Prepare the SQL statement
+    if (sqlite3_prepare_v2(mSqlDB, mSQLquery, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "[ERROR]: Failed to prepare SQL statement: " << sqlite3_errmsg(mSqlDB) << std::endl;
+        return false;
+    }
+
+    std::vector<statEntry> temp {};
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        statEntry line;
+
+        line.id = sqlite3_column_int(stmt, 0);                                                  //HERO ID
+        line.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));                // NAME
+        line.kills = sqlite3_column_int(stmt, 2);                                               // KILLS
+        line.xpFromKills = sqlite3_column_int(stmt, 3);                                         // XP_GAINED_FROM_KILLS
+
+        temp.push_back(line);
+    }
+
+    stats = temp;
+
+    // Finalize the statement to free resources
+    sqlite3_finalize(stmt);
+
+    std::cout << "[INFO]: Successfully retrieved stats from the database." << std::endl;
+
+    return true;
+
 }

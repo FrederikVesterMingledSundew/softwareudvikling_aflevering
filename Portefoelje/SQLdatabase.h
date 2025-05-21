@@ -6,6 +6,11 @@
 #include <vector>
 #include "character.h"
 
+//Stats
+struct statEntry {
+    int id = 0, kills = 0, xpFromKills = 0;
+    std::string name {};
+};
 
 class sqlDB
 {
@@ -32,6 +37,10 @@ public:
     bool loadWeaponShop(const character &hero, std::vector<Weapon> &shopItems);
 
     bool addWeaponType(std::string name, int durability, int modifier, int price);
+
+    bool addToStats(const character &hero, int kills, int XP);
+
+    bool loadStats(std::vector<statEntry> &stats);
 
 private:
     std::string mFile;
