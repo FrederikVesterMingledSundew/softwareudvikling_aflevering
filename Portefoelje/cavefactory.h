@@ -21,7 +21,10 @@ static std::string caveModifierNames[10] = {
     "Dread"
 
 };
-
+/*
+ *This is my cavefactory. Here i make all my caves
+ *
+ */
 class CaveFactory
 {
 public:
