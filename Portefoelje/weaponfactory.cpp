@@ -24,7 +24,3 @@ Weapon WeaponFactory::generateWeapon(int caveLvl, sqlDB &DB) {
 
     return output;
 }
-
-Weapon WeaponFactory::buyWeapon(int weaponID) {
-    return Weapon("", 0, 0, 0, 0);
-}
