@@ -1,4 +1,12 @@
-# KILL THE DRAGON
+# README
+## DB Creation
+The DB will create itself no need to run the ´´´AllreadyInProgramDB.txt´´´
+Its there only due to the assignment
+
+## Documentation
+You will find the documentation in the file Dokumentation
+
+# KILL THE DRAGON - The game
 You are a hero.
  - You are marked by 'H' in the bottom
 You can move from side to side as you move along in the world.
@@ -43,5 +51,3 @@ Press ENTER to when you have selected that you want.
 
 if you need to write something, Eg a hero name, you will be allowed to use all letters from A to Z
 
-## Documentation
-You will find the documentation in the file Dokumentation
