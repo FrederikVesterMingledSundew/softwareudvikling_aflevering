@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.5 Chrome/134.0.6998.205 Electron/35.3.0 Safari/537.36" version="27.0.5">
   <diagram name="Page-1" id="glqilBJ5X1bFtykxf7nL">
-    <mxGraphModel dx="1426" dy="841" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1090" dy="825" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -174,74 +174,35 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="whpEiNrjwO0dgCER52iw-1" value="Udfordre mange monstre i caves" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="whpEiNrjwO0dgCER52iw-1" value="Udfordre mange monstre i caves" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="250" y="140" width="120" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="whpEiNrjwO0dgCER52iw-2" value="" style="endArrow=none;html=1;rounded=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" parent="1" target="whpEiNrjwO0dgCER52iw-1" edge="1">
+        <mxCell id="whpEiNrjwO0dgCER52iw-2" value="" style="endArrow=none;html=1;rounded=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" target="whpEiNrjwO0dgCER52iw-1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="100" y="320" as="sourcePoint" />
             <mxPoint x="180" y="220" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="whpEiNrjwO0dgCER52iw-4" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="whpEiNrjwO0dgCER52iw-5" target="whpEiNrjwO0dgCER52iw-1" edge="1">
+        <mxCell id="whpEiNrjwO0dgCER52iw-4" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="whpEiNrjwO0dgCER52iw-5" target="whpEiNrjwO0dgCER52iw-1">
           <mxGeometry x="0.0051" y="2" width="160" relative="1" as="geometry">
             <mxPoint x="580" y="150" as="sourcePoint" />
             <mxPoint x="360" y="165" as="targetPoint" />
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="whpEiNrjwO0dgCER52iw-5" value="Gain XP og Gold ved at tømme caves for monstre" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-          <mxGeometry x="460" y="120" width="145" height="80" as="geometry" />
+        <mxCell id="whpEiNrjwO0dgCER52iw-5" value="Gain XP og Gold ved at tømme caves for monstre" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="110" width="145" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="whpEiNrjwO0dgCER52iw-8" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="whpEiNrjwO0dgCER52iw-5" target="OuhxvACZPqmv0FVhe3Ip-14" edge="1">
+        <mxCell id="whpEiNrjwO0dgCER52iw-8" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="whpEiNrjwO0dgCER52iw-5" target="OuhxvACZPqmv0FVhe3Ip-14">
           <mxGeometry width="160" relative="1" as="geometry">
             <mxPoint x="538" y="200" as="sourcePoint" />
             <mxPoint x="440" y="202" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="whpEiNrjwO0dgCER52iw-9" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" parent="1" source="ScA_g0iahR52ZkwVIx0Q-1" target="whpEiNrjwO0dgCER52iw-1" edge="1">
+        <mxCell id="whpEiNrjwO0dgCER52iw-9" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="ScA_g0iahR52ZkwVIx0Q-1" target="whpEiNrjwO0dgCER52iw-1">
           <mxGeometry width="160" relative="1" as="geometry">
             <mxPoint x="440" y="140" as="sourcePoint" />
             <mxPoint x="350" y="70" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-2" value="Tilføj kill til statistik" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="650" y="200" width="120" height="50" as="geometry" />
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-3" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ScA_g0iahR52ZkwVIx0Q-1" target="BRo5T6H2cgZ5VzVYU0H4-2">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="400" y="460" as="sourcePoint" />
-            <mxPoint x="450" y="410" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-4" value="Find nye våben" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="640" y="145" width="140" height="40" as="geometry" />
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-5" value="" style="endArrow=none;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="BRo5T6H2cgZ5VzVYU0H4-4" target="whpEiNrjwO0dgCER52iw-5">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="400" y="460" as="sourcePoint" />
-            <mxPoint x="450" y="410" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-6" value="Se statistikker over lokale heroes i spillet" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="200" y="30" width="200" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-7" value="" style="endArrow=none;html=1;rounded=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="OuhxvACZPqmv0FVhe3Ip-2" target="BRo5T6H2cgZ5VzVYU0H4-6">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="400" y="460" as="sourcePoint" />
-            <mxPoint x="450" y="410" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-8" value="Køb våben i våbenshop" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="425" y="50" width="155" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="BRo5T6H2cgZ5VzVYU0H4-9" value="" style="endArrow=none;html=1;rounded=0;entryX=0;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="OuhxvACZPqmv0FVhe3Ip-2" target="BRo5T6H2cgZ5VzVYU0H4-8">
-          <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="400" y="360" as="sourcePoint" />
-            <mxPoint x="450" y="310" as="targetPoint" />
-            <Array as="points">
-              <mxPoint x="250" y="130" />
-            </Array>
           </mxGeometry>
         </mxCell>
       </root>

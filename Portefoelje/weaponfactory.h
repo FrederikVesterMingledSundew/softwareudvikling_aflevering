@@ -63,8 +63,6 @@ public:
     WeaponFactory();
 
     Weapon generateWeapon(int caveLvl, sqlDB &DB);
-
-    Weapon buyWeapon(int weaponID);
 };
 
 #endif // WEAPONFACTORY_H
