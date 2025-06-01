@@ -3,6 +3,15 @@
 The DB will create itself no need to run the ´´´AllreadyInProgramDB.txt´´´
 Its there only due to the assignment
 
+## Running it
+The executable you can find on ".\Portefoelje\build" or you can build it yourself from the cmake
+
+## Compiling it
+The way i did it is from ".\Portefoelje\build"
+1. "cmake .."
+2. "make"
+You should now be able to find your executable in the build folder
+
 ## Documentation
 You will find the documentation in the file Dokumentation
 
