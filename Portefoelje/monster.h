@@ -3,6 +3,12 @@
 
 #include <string>
 
+/*
+ * Det her er monster klassen
+ * Det er alle de fjender du møder. Også dragen
+ *
+ */
+
 class monster
 {
 public:

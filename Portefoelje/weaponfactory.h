@@ -57,6 +57,11 @@ static std::string weaponType[] = { //31
     "Gun"
 };
 
+/*
+ * Alle våben bliver skabt her.
+ *
+ */
+
 class WeaponFactory
 {
 public:

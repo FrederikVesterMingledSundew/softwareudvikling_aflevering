@@ -85,6 +85,12 @@ World verden(WIDTH, HEIGHT);
 //SQL
 sqlDB DB("saves.db");
 
+/*
+ *  Selve spillet. Det er her bogstaverne falder ned og en
+ *  Det er her man enganger fjenden
+ *
+ */
+
 void drawGame(character &player, monster &pMonster, cave &currentCave) {
 
     std::string playerDamage;
@@ -168,6 +174,12 @@ void drawGame(character &player, monster &pMonster, cave &currentCave) {
 
 }
 
+/*
+ *  Lige inden man går ind i en cave. Det er her det foregår.
+ *  Stats osv får man for at se om man burde
+ *
+ */
+
 void drawCaveConflict( character& player,  cave& caveCnf ) {
 
 
@@ -230,6 +242,11 @@ void drawCaveConflict( character& player,  cave& caveCnf ) {
         std::cout << "[----------------------------------------]" << std::endl;
     }
 }
+
+/*
+ *  Hvis man så angriber caven er det her det foregår
+ *
+ */
 
 void drawCaveFight( character& player,  cave& caveCnf ) {
 
@@ -356,6 +373,13 @@ void drawCaveFight( character& player,  cave& caveCnf ) {
     std::this_thread::sleep_for(std::chrono::milliseconds(2500)); //Så det ikke går alt for hurtigt
 }
 
+
+/*
+ *  Lige inden man angriber en fjende, så får man dens stats og dine stats
+ *  til at se om man tør at angribe
+ *
+ */
+
 void drawMonsterConflict( character& player,  monster& monsterKiller ) {
 
     std::string monsterNameString = "You have met " + monsterKiller.getName();
@@ -402,6 +426,11 @@ void drawMonsterConflict( character& player,  monster& monsterKiller ) {
         std::cout << "[----------------------------------------]" << std::endl;
     }
 }
+
+/*
+ *  Hvis man angriber fjenden, så er det her
+ *
+ */
 
 void drawMonsterFight( character& player,  monster& monsterKiller ) {
 
@@ -489,6 +518,11 @@ void drawMonsterFight( character& player,  monster& monsterKiller ) {
     std::this_thread::sleep_for(std::chrono::milliseconds(2000)); //Så det ikke går alt for hurtigt
 }
 
+/*
+ *  Hvis man dør i løbet af spillet, så er det her
+ *
+ */
+
 void drawGameOver() {
 
     std::cout << "[----------------------------------------]" << std::endl;
@@ -504,6 +538,11 @@ void drawGameOver() {
     std::cout << "[ " << std::setw(WIDTH-1) << "Press ESC/ENTER to continue" << "]" << std::endl;
 
 }
+
+/*
+ *  Hvis man vinder spillet, så rammer man den her menu.
+ *
+ */
 
 void drawGameWon() {
 
@@ -521,6 +560,10 @@ void drawGameWon() {
 
 }
 
+/*
+ *  Våben genereret fra de caves man har ryddet
+ *
+ */
 
 void drawGameShop( character& player, std::vector<Weapon> shopItems ) {
     std::cout << "[----------------------------------------]" << std::endl;
@@ -555,6 +598,11 @@ void drawGameShop( character& player, std::vector<Weapon> shopItems ) {
     }
 
 }
+
+/*
+ *  Det er hovedemenuen. Den er forskellig om man er logget ind eller ikke.
+ *
+ */
 
 void drawMenu( character& player, std::vector<Weapon>& shoppingCart, std::vector<statEntry> &stats ) {
     std::cout << "[----------------------------------------]" << std::endl;
@@ -757,6 +805,11 @@ void drawMenu( character& player, std::vector<Weapon>& shoppingCart, std::vector
     }
 }
 
+/*
+ *  Create player menu
+ *
+ */
+
 void drawPlayerCreationMenu( character& player ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
@@ -798,6 +851,11 @@ void drawPlayerCreationMenu( character& player ) {
     }
 }
 
+/*
+ *  Load player menu
+ *
+ */
+
 void drawLoadPlayerMenu( character& player ) {
 
     std::cout << "[----------------------------------------]" << std::endl;
@@ -838,6 +896,11 @@ void drawLoadPlayerMenu( character& player ) {
     }
 }
 
+/*
+ *  Statistik over heroes
+ *
+ */
+
 void drawStats( std::vector<statEntry> &stats ) {
     std::cout << "[----------------------------------------]" << std::endl;
     std::cout << "[ " << std::setw(WIDTH/2-1) << std::left << "KILL THE DRAGON" << std::setw(WIDTH/2) << "" << "]" << std::endl;
@@ -862,6 +925,11 @@ void drawStats( std::vector<statEntry> &stats ) {
         std::cout << "[----------------------------------------]" << std::endl;
     }
 }
+
+/*
+ *  Hjælpe menu
+ *
+ */
 
 void drawAbout() {
     std::cout << "[----------------------------------------]" << std::endl;
@@ -894,6 +962,11 @@ void drawAbout() {
         std::cout << "[----------------------------------------]" << std::endl;
     }
 }
+
+/*
+ *  Threaded function til tjekke keyboard
+ *
+ */
 
 void keyboardCTRLFunc( character &player ) {
 
@@ -1250,6 +1323,12 @@ void keyboardCTRLFunc( character &player ) {
     exitLoop_1:
     std::cout << "Exit of keyboard thread" << std::endl;
 }
+
+/*
+ *  Main udløser de andre funktioner, som giver verden mening.
+ *  Bygget på en stateMachine som viser hvilken menu, vi befinder os i.
+ *
+ */
 
 int main()
 {

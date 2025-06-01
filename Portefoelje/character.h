@@ -7,6 +7,11 @@
 #define START_STRENGTH 2
 #define START_LEVEL 1
 
+/*
+ *  Det her er hero klassen
+ *
+ */
+
 class character
 {
 public:

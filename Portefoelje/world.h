@@ -9,7 +9,11 @@
 //Settings
 #define DIVIDER 1000
 
-//extern std::default_random_engine generatorRand;
+/*
+ * Det her er verden, som består at bogstaver i en string.
+ * Den kan ikke gøre noget i sig selv, mening foregår i main
+ *
+ */
 
 class World
 {

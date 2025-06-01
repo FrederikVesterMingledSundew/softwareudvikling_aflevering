@@ -12,6 +12,12 @@ struct statEntry {
     std::string name {};
 };
 
+
+/*
+ * Alt SQL foregår igennem denne klasse
+ *
+ */
+
 class sqlDB
 {
 public:

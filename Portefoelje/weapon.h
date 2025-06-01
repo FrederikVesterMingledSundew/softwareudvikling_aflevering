@@ -3,6 +3,12 @@
 
 #include <string>
 
+/*
+ * Dette er våbenklassen.
+ * Den hænger sammen med heroklassen
+ *
+ */
+
 class Weapon
 {
 public:

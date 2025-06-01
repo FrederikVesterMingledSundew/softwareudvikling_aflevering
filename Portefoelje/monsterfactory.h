@@ -24,6 +24,13 @@ static std::string monsterNames[50] = {
 
 static std::string monsterStrength[6] = { "Weak", "Light", "Intermediate", "Strong", "Stronger", "Godlike"};
 
+
+/*
+ * Alle monstre bliver skabt i monster factory.
+ * Det er her.
+ *
+ */
+
 class MonsterFactory
 {
 public:

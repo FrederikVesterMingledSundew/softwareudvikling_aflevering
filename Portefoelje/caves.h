@@ -5,6 +5,11 @@
 #include <string>
 #include "monsterfactory.h"
 
+/*
+ * Det her er obejektet caves, som er lidt mere end en placeholder for monstre.
+ *
+ */
+
 extern MonsterFactory MFactory;
 
 class cave

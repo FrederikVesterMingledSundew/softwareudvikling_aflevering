@@ -21,10 +21,12 @@ static std::string caveModifierNames[10] = {
     "Dread"
 
 };
+
+
 /*
- *This is my cavefactory. Here i make all my caves
- *
+ * Det her cave factory. Det er her alle caves bliver produceret.
  */
+
 class CaveFactory
 {
 public:
